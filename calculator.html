@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Oswald&display=swap" rel="stylesheet">
+  <script src="nerdamer.core.js"></script>
+  <script src="Algebra.js"></script>
+  <script src="Calculus.js"></script>
+  <script src="Solve.js"></script>
+  <script src="Extra.js"></script>
+  <title>Square Integration</title>
+  <style>
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: '#f8f8f8';
+      color: '#2b2b28';
+      font-size: 16px;
+    }
+
+    h2 {
+      font-family: 'Oswald', sans-serif;
+    }
+
+    #input-container {
+      width: 90vw;
+      height: 60vh;
+      position: relative;
+    }
+
+    input {
+      font-family: 'Oswald', sans-serif;
+      height: 3vh;
+      width: 15vw;
+      font-size: 16px;
+    }
+
+    button {
+      font-family: 'Oswald', sans-serif;
+      height: 5vh;
+      width: 15vw;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+  <center>
+    <div id="input-container">
+      <h2>Equations to STL Files</h2>
+      <p>To use the calculator, enter the two equations that form the volume and change the slice width to your desired
+        width.</p>
+      <button id="help">Help</button><br>
+      <p>Equation One: <input type="text" id="eq1"></input></p>
+      <p>Equation Two: <input type="text" id="eq2"></input></p>
+      <p>Slice Width: <input type="text" id="width"></input></p>
+      <button id="calculate">Calculate</button><br>
+      <p id="area">Base Area: </p><br><br>
+
+    </div>
+
+    <div class="chart-container" style="position: relative; height: 60vh; width: 70vw">
+
+      <canvas id="myChart" width="50" height="100"></canvas>
+    </div>
+
+    <script>
+
+      // Set default equation values
+      document.getElementById('eq1').value = "2*x^2 - 6*x + 4";
+      document.getElementById('eq2').value = "4*cos(pi*x/4)";
+      document.getElementById('width').value = "0.01";
+
+      let update = false;
+      let chart;
+
+      // Create chart on page
+      var ctx = document.getElementById('myChart').getContext('2d');
+
+      // Replaced trig functions and pi in equations
+      function edit(string) {
+        string = string.replace(/pi/g, 'Math.PI');
+        string = string.replace(/sin/g, 'Math.sin');
+        string = string.replace(/cos/g, 'Math.cos');
+        string = string.replace(/tan/g, 'Math.tan');
+        string = string.replace(/sqrt/g, 'Math.sqrt');
+
+        return string;
+      }
+
+      $("#help").click(function () {
+        alert("Enter two functions that have exactly two points of intersection.")
+      })
+
+      $("#calculate").click(function () {
+        // Set variables for both equations
+        var eq1 = document.getElementById('eq1').value;
+        var eq2 = document.getElementById('eq2').value;
+        var width = eval(document.getElementById('width').value);
+
+        // Calculate base area of solid
+        var x = nerdamer(eq1).subtract(eq2);
+        x = nerdamer('defint(' + x.toString() + ', 2, 0, x)');
+        document.getElementById('area').innerHTML = 'Base Area: ' + x.toString();
+
+        let intersection1 = 0;
+        let intersection2 = 0;
+
+        // Get solutions for equations
+        nerdamer.set('SOLUTIONS_AS_OBJECT', false);
+        let z = eq1 + '=' + eq2;
+        var sol = nerdamer.solveEquations(z, 'x').toString();
+        var xpoints = sol.split(',');
+        var ypoints = [];
+        var points = [];
+
+        var bottom = [];
+        var top = [];
+        var labels = [];
+
+        let xMin;
+        let xMax;
+
+        let yMin;
+        let yMax;
+
+        for (let i = 0; i < xpoints.length; i++) {
+          xpoints[i] = edit(xpoints[i]);
+          xpoints[i] = eval(xpoints[i]);
+        }
+
+        xpoints.sort();
+
+        // See if the lines intersect at the solutions
+        for (let i = 0; i < xpoints.length; i++) {
+          let eq1edit = 'y = ' + eq1.replace(/x/g, '(' + xpoints[i] + ')');
+          let eq2edit = 'y = ' + eq2.replace(/x/g, '(' + xpoints[i] + ')');
+
+          let eq1solution = nerdamer.solve(eq1edit, 'y').toString();
+          eq1solution = edit(eq1solution);
+          eq1solution = eval(eq1solution);
+
+          let eq2solution = nerdamer('solve(' + eq2edit + ', y)').toString();
+          eq2solution = edit(eq2solution);
+          eq2solution = eval(eq2solution);
+
+          // If the two y-values are the same, it becomes a point
+          if (eq1solution[0] === eq2solution[0]) {
+            ypoints[i] = eq1solution[0];
+          } else {
+            ypoints[i] = null;
+          }
+        }
+
+        let tempx = [];
+        let tempy = [];
+
+        // Create separate x and y arrays
+        for (let i = 0; i < ypoints.length; i++) {
+          if (ypoints[i] !== null) {
+            tempx.push(xpoints[i]);
+            tempy.push(ypoints[i]);
+          }
+        }
+
+        ypoints = tempy;
+        xpoints = tempx;
+
+        // Create array of (x, y) points
+        for (let i = 0; i < xpoints.length; i++) {
+          if (ypoints[i] !== null) {
+            points[i] = [xpoints[i], ypoints[i]];
+          }
+        }
+
+        if (points.length == 0) {
+          alert("These equations have more than two solutions.");
+        }
+
+        xMin = points[0][0];
+        xMax = points[1][0];
+
+        for (let i = points[0][0]; i <= points[1][0] + width; i = i + width) {
+          // Create labels for the graph
+          labels.push(Math.round(1000 * i) / 1000);
+
+          // Create both equations again
+          let eq1edit = 'y = ' + eq1.replace(/x/g, '(' + i + ')');
+          let eq2edit = 'y = ' + eq2.replace(/x/g, '(' + i + ')');
+
+          // Solve equation 1 for its y value at the specified x value
+          let eq1solution = nerdamer('solve(' + eq1edit + ', y)').toString();
+          eq1solution = eq1solution.split(',')[0];
+          eq1solution = edit(eq1solution);
+          eq1solution = eval(eq1solution.substring(1, eq1solution.length - 1));
+
+          // Solve equation 2 for its y value at the specified x value
+          let eq2solution = nerdamer('solve(' + eq2edit + ', y)').toString();
+          eq2solution = eq2solution.split(',')[0];
+          eq2solution = edit(eq2solution);
+          eq2solution = eval(eq2solution.substring(1, eq2solution.length - 1));
+
+          if (i === points[0][0]) {
+            if (eq1solution > eq2solution) {
+              yMax = eq1solution;
+              yMin = eq2solution;
+            } else {
+              yMax = eq2solution;
+              yMin = eq1solution;
+            }
+          }
+
+          // Reset minimum and maximum values
+          if (eq1solution > eq2solution) {
+            let temp = eq1solution;
+            eq1solution = eq2solution;
+            eq2solution = temp;
+          }
+
+          if (eq1solution < yMin) {
+            yMin = eq1solution;
+          }
+
+          if (eq1solution > yMax) {
+            yMax = eq1solution;
+          }
+
+          if (eq2solution < yMin) {
+            yMin = eq2solution;
+          }
+
+          if (eq2solution > yMax) {
+            yMax = eq2solution;
+          }
+
+          bottom.push(eq1solution);
+          top.push(eq2solution);
+        }
+
+        // Edit chart default settings
+        if (update === false) {
+          update = true;
+          Chart.defaults.global.defaultFontFamily = 'Open Sans';
+          Chart.defaults.global.legend = false;
+          Chart.defaults.global.defaultFontColor = '#2b2b28';
+          Chart.defaults.global.defaultFontSize = 16;
+
+          chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Bottom',
+                backgroundColor: '#f1d6ab45',
+                borderColor: '#e3b04b',
+                pointBackgroundColor: '#2b2b28',
+                pointBorderColor: '#2b2b28',
+                pointHitRadius: 5,
+                pointRadius: 0,
+                data: bottom,
+                fill: '+1'
+              },
+              {
+                label: 'Top',
+                backgroundColor: '#f1d6ab45',
+                borderColor: '#e3b04b',
+                pointBackgroundColor: '#2b2b28',
+                pointBorderColor: '#2b2b28',
+                pointHitRadius: 5,
+                pointRadius: 0,
+                data: top,
+                fill: '-1'
+              }
+              ]
+            },
+            options: {
+              title: {
+                display: true,
+                text: 'Integration of Equations One & Two'
+              },
+              maintainAspectRatio: false,
+              spanGaps: false,
+              elements: {
+                line: {
+                  tension: 0.000001
+                }
+              },
+              legend: {
+                labels: {
+                  fontColor: 'black',
+                  defaultFontFamily: 'Arial'
+                }
+              },
+              scales: {
+                yAxes: [{
+                  ticks: {
+                    max: yMax,
+                    min: yMin,
+                    stepSize: (yMax - yMin) / 10
+                  }
+                }]
+              },
+              plugins: {
+                filler: {
+                  propagate: false
+                },
+                'samples-filler-analyser': {
+                  target: 'chart-analyser'
+                }
+              }
+            }
+          });
+
+          let bottomMeshes = [];
+          let topMeshes = [];
+          let leftMeshes = [];
+          let rightMeshes = [];
+          let frontMeshes = [];
+          let backMeshes = [];
+
+          // Making meshes - bottom mesh
+          for (let i = 0; i < bottom.length; i++) {
+            // Same z for all
+            let verticeOne = [(i * width), bottom[i], 0];
+            let verticeTwo = [((i * width) + width), bottom[i], 0];
+            let verticeThree = [(i * width), top[i], 0];
+            let verticeFour = [((i * width) + width), top[i], 0];
+            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
+
+            bottomMeshes.push(myMesh);
+          }
+
+          // Making meshes - top mesh
+          for (let i = 0; i < bottom.length; i++) {
+            // Same z for all
+            let verticeOne = [(i * width), bottom[i], Math.abs(bottom[i] - top[i])];
+            let verticeTwo = [((i * width) + width), bottom[i], Math.abs(bottom[i] - top[i])];
+            let verticeThree = [(i * width), top[i], Math.abs(bottom[i] - top[i])];
+            let verticeFour = [((i * width) + width), top[i], Math.abs(bottom[i] - top[i])];
+            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
+
+            topMeshes.push(myMesh);
+          }
+
+          // Making meshes - left mesh
+          for (let i = 0; i < bottom.length; i++) {
+            // Same y for all
+            let verticeOne = [(i * width), top[i], 0];
+            let verticeTwo = [(i * width), top[i], Math.abs(bottom[i] - top[i])];
+            let verticeThree = [((i * width) + width), top[i], 0];
+            let verticeFour = [((i * width) + width), top[i], Math.abs(bottom[i] - top[i])];
+            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
+
+            leftMeshes.push(myMesh);
+          }
+
+          // Making meshes - right mesh
+          for (let i = 0; i < bottom.length; i++) {
+            // Same y for all
+            let verticeOne = [(i * width), bottom[i], 0];
+            let verticeTwo = [(i * width), bottom[i], Math.abs(bottom[i] - top[i])];
+            let verticeThree = [((i * width) + width), bottom[i], 0];
+            let verticeFour = [((i * width) + width), bottom[i], Math.abs(bottom[i] - top[i])];
+            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
+
+            rightMeshes.push(myMesh);
+          }
+
+          // Making meshes - front mesh
+          for (let i = 0; i < bottom.length; i++) {
+            // Same x for all
+            let verticeOne = [(i * width), bottom[i], 0];
+            let verticeTwo = [(i * width), bottom[i], Math.abs(bottom[i] - top[i])];
+            let verticeThree = [(i * width), top[i], 0];
+            let verticeFour = [(i * width), top[i], Math.abs(bottom[i] - top[i])];
+            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
+
+            frontMeshes.push(myMesh);
+          }
+
+          // Making meshes - back mesh
+          for (let i = 0; i < bottom.length; i++) {
+            // Same x for all
+            let verticeOne = [((i * width) + width), bottom[i], 0];
+            let verticeTwo = [((i * width) + width), bottom[i], Math.abs(bottom[i] - top[i])];
+            let verticeThree = [((i * width) + width), top[i], 0];
+            let verticeFour = [((i * width) + width), top[i], Math.abs(bottom[i] - top[i])];
+            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
+
+            backMeshes.push(myMesh);
+          }
+
+          let script = "";
+
+          for (let i = 0; i < bottom.length; i++) {
+            script += "var mesh" + i + " = new Mesh3D(); \n" + bottomMeshes[i] + "\n" + topMeshes[i] + "\n" + leftMeshes[i] + "\n" + rightMeshes[i] + "\n" + frontMeshes[i] + "\n" + backMeshes[i] + "\n";
+
+            if (i != 0) {
+              script += "mesh0.combine(mesh" + i + "); \n";
+            }
+          }
+
+          script += "return Solid.make(mesh0);";
+
+          console.log(script);
+
+        } else {
+          alert("Refresh to enter a new equation!");
+        }
+
+        // Color palette: https://colorhunt.co/palette/161696
+      });
+
+    </script>
+</body>
+
+</html>
