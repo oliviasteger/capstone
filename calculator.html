@@ -45,6 +45,11 @@
       width: 15vw;
       font-size: 16px;
     }
+
+    #code {
+      text-align: left;
+      font-size: 10px;
+    }
   </style>
 </head>
 
@@ -60,13 +65,14 @@
       <p>Slice Width: <input type="text" id="width"></input></p>
       <button id="calculate">Calculate</button><br>
       <p id="area">Base Area: </p><br><br>
-
     </div>
 
     <div class="chart-container" style="position: relative; height: 60vh; width: 70vw">
 
       <canvas id="myChart" width="50" height="100"></canvas>
     </div>
+
+    <p id="code"></p><br><br>
 
     <script>
 
@@ -407,6 +413,8 @@
           script += "return Solid.make(mesh0);";
 
           console.log(script);
+
+          document.getElementById('code').innerHTML = script;
 
         } else {
           alert("Refresh to enter a new equation!");
