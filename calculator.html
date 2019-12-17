@@ -403,10 +403,10 @@
           let script = "";
 
           for (let i = 0; i < bottom.length; i++) {
-            script += "var mesh" + i + " = new Mesh3D(); \n" + bottomMeshes[i] + "\n" + topMeshes[i] + "\n" + leftMeshes[i] + "\n" + rightMeshes[i] + "\n" + frontMeshes[i] + "\n" + backMeshes[i] + "\n";
+            script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + topMeshes[i] + "<br>" + leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + frontMeshes[i] + "<br>" + backMeshes[i] + "<br>";
 
             if (i != 0) {
-              script += "mesh0.combine(mesh" + i + "); \n";
+              script += "mesh0.combine(mesh" + i + "); <br>";
             }
           }
 
