@@ -20,6 +20,14 @@
       background-color: '#f8f8f8';
       color: '#2b2b28';
       font-size: 16px;
+      padding: 0px;
+      margin: 0px;
+      align-items: left;
+    }
+
+    table {
+      margin: 0px;
+      padding: 0px;
     }
 
     h2 {
@@ -27,9 +35,11 @@
     }
 
     #input-container {
-      width: 90vw;
-      height: 60vh;
-      position: relative;
+      padding: 10px;
+      width: 35vw;
+      height: 100%;
+      align-items: left;
+      background-color: moccasin;
     }
 
     input {
@@ -55,37 +65,39 @@
 
 <body>
   <center>
-    <div id="input-container">
-      <h2>Equations to STL Files</h2>
-      <p>To use the calculator, enter the two equations that form the volume and change the slice width to your desired
-        width. (Lower slice width, higher model quality.)</p>
-      <button id="help">Help</button><br>
-      <p>Equation One: <input type="text" id="eq1"></input></p>
-      <p>Equation Two: <input type="text" id="eq2"></input></p>
-      <p>Slice Width: <input type="text" id="width"></input></p>
-      <button id="calculate">Calculate</button><br>
-      <p id="area">Base Area: </p><br><br>
-    </div>
-
-    <div class="chart-container" style="position: relative; height: 60vh; width: 70vw">
-
-      <canvas id="myChart" width="50" height="100"></canvas>
-    </div>
+    <table>
+      <tr>
+        <td>
+          <div id="input-container">
+            <h2>Equations to STL Files</h2>
+            <p>To use the calculator, enter the two equations that form the volume and change the slice width to your
+              desired
+              width. (Lower slice width, higher model quality.)</p>
+            <button id="help">Help</button><br>
+            <p>Equation One: <input type="text" id="eq1"></input></p>
+            <p>Equation Two: <input type="text" id="eq2"></input></p>
+            <p>Slice Width: <input type="text" id="width"></input></p>
+            <button id="calculate">Calculate</button><br>
+            <p id="area">Base Area: </p><br><br>
+            <button id="copy" onclick="copyScript()">Copy Script</button><br>
+          </div>
+        </td>
+        <td>
+          <iframe width="725" height="453" src="https://www.tinkercad.com/embed/g1iORoD7B2j?editbtn=1" frameborder="0"
+            marginwidth="0" marginheight="0" scrolling="no"></iframe>
+        </td>
+      </tr>
+    </table>
 
     <p id="code"></p><br><br>
 
     <script>
-
       // Set default equation values
       document.getElementById('eq1').value = "2*x^2 - 6*x + 4";
       document.getElementById('eq2').value = "4*cos(pi*x/4)";
       document.getElementById('width').value = "0.01";
 
       let update = false;
-      let chart;
-
-      // Create chart on page
-      var ctx = document.getElementById('myChart').getContext('2d');
 
       // Replaced trig functions and pi in equations
       function edit(string) {
@@ -210,6 +222,7 @@
           eq2solution = edit(eq2solution);
           eq2solution = eval(eq2solution.substring(1, eq2solution.length - 1));
 
+          // Look back to test
           if (i === points[0][0]) {
             if (eq1solution > eq2solution) {
               yMax = eq1solution;
@@ -247,182 +260,123 @@
           top.push(eq2solution);
         }
 
-        // Edit chart default settings
-        if (update === false) {
-          update = true;
-          Chart.defaults.global.defaultFontFamily = 'Open Sans';
-          Chart.defaults.global.legend = false;
-          Chart.defaults.global.defaultFontColor = '#2b2b28';
-          Chart.defaults.global.defaultFontSize = 16;
+        let bottomMeshes = [];
+        let topMeshes = [];
+        let leftMeshes = [];
+        let rightMeshes = [];
+        let frontMeshes = [];
+        let backMeshes = [];
 
-          chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: labels,
-              datasets: [{
-                label: 'Bottom',
-                backgroundColor: '#f1d6ab45',
-                borderColor: '#e3b04b',
-                pointBackgroundColor: '#2b2b28',
-                pointBorderColor: '#2b2b28',
-                pointHitRadius: 5,
-                pointRadius: 0,
-                data: bottom,
-                fill: '+1'
-              },
-              {
-                label: 'Top',
-                backgroundColor: '#f1d6ab45',
-                borderColor: '#e3b04b',
-                pointBackgroundColor: '#2b2b28',
-                pointBorderColor: '#2b2b28',
-                pointHitRadius: 5,
-                pointRadius: 0,
-                data: top,
-                fill: '-1'
-              }
-              ]
-            },
-            options: {
-              title: {
-                display: true,
-                text: 'Integration of Equations One & Two'
-              },
-              maintainAspectRatio: false,
-              spanGaps: false,
-              elements: {
-                line: {
-                  tension: 0.000001
-                }
-              },
-              legend: {
-                labels: {
-                  fontColor: 'black',
-                  defaultFontFamily: 'Arial'
-                }
-              },
-              scales: {
-                yAxes: [{
-                  ticks: {
-                    max: yMax,
-                    min: yMin,
-                    stepSize: (yMax - yMin) / 10
-                  }
-                }]
-              },
-              plugins: {
-                filler: {
-                  propagate: false
-                },
-                'samples-filler-analyser': {
-                  target: 'chart-analyser'
-                }
-              }
-            }
-          });
+        console.log(bottom);
+        console.log(top);
 
-          let bottomMeshes = [];
-          let topMeshes = [];
-          let leftMeshes = [];
-          let rightMeshes = [];
-          let frontMeshes = [];
-          let backMeshes = [];
+        // Making meshes - bottom mesh
+        for (let i = 0; i < bottom.length; i++) {
+          // Same z for all
+          let verticeOne = [10 * (i * width), 10 * bottom[i], 0];
+          let verticeTwo = [10 * ((i * width) + width), 10 * bottom[i], 0];
+          let verticeThree = [10 * (i * width), 10 * top[i], 0];
+          let verticeFour = [10 * ((i * width) + width), 10 * top[i], 0];
+          let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" +
+            verticeFour + "]);";
 
-          // Making meshes - bottom mesh
-          for (let i = 0; i < bottom.length; i++) {
-            // Same z for all
-            let verticeOne = [(i * width), bottom[i], 0];
-            let verticeTwo = [((i * width) + width), bottom[i], 0];
-            let verticeThree = [(i * width), top[i], 0];
-            let verticeFour = [((i * width) + width), top[i], 0];
-            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
-
-            bottomMeshes.push(myMesh);
-          }
-
-          // Making meshes - top mesh
-          for (let i = 0; i < bottom.length; i++) {
-            // Same z for all
-            let verticeOne = [(i * width), bottom[i], Math.abs(bottom[i] - top[i])];
-            let verticeTwo = [((i * width) + width), bottom[i], Math.abs(bottom[i] - top[i])];
-            let verticeThree = [(i * width), top[i], Math.abs(bottom[i] - top[i])];
-            let verticeFour = [((i * width) + width), top[i], Math.abs(bottom[i] - top[i])];
-            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
-
-            topMeshes.push(myMesh);
-          }
-
-          // Making meshes - left mesh
-          for (let i = 0; i < bottom.length; i++) {
-            // Same y for all
-            let verticeOne = [(i * width), top[i], 0];
-            let verticeTwo = [(i * width), top[i], Math.abs(bottom[i] - top[i])];
-            let verticeThree = [((i * width) + width), top[i], 0];
-            let verticeFour = [((i * width) + width), top[i], Math.abs(bottom[i] - top[i])];
-            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
-
-            leftMeshes.push(myMesh);
-          }
-
-          // Making meshes - right mesh
-          for (let i = 0; i < bottom.length; i++) {
-            // Same y for all
-            let verticeOne = [(i * width), bottom[i], 0];
-            let verticeTwo = [(i * width), bottom[i], Math.abs(bottom[i] - top[i])];
-            let verticeThree = [((i * width) + width), bottom[i], 0];
-            let verticeFour = [((i * width) + width), bottom[i], Math.abs(bottom[i] - top[i])];
-            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
-
-            rightMeshes.push(myMesh);
-          }
-
-          // Making meshes - front mesh
-          for (let i = 0; i < bottom.length; i++) {
-            // Same x for all
-            let verticeOne = [(i * width), bottom[i], 0];
-            let verticeTwo = [(i * width), bottom[i], Math.abs(bottom[i] - top[i])];
-            let verticeThree = [(i * width), top[i], 0];
-            let verticeFour = [(i * width), top[i], Math.abs(bottom[i] - top[i])];
-            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
-
-            frontMeshes.push(myMesh);
-          }
-
-          // Making meshes - back mesh
-          for (let i = 0; i < bottom.length; i++) {
-            // Same x for all
-            let verticeOne = [((i * width) + width), bottom[i], 0];
-            let verticeTwo = [((i * width) + width), bottom[i], Math.abs(bottom[i] - top[i])];
-            let verticeThree = [((i * width) + width), top[i], 0];
-            let verticeFour = [((i * width) + width), top[i], Math.abs(bottom[i] - top[i])];
-            let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" + verticeFour + "]);";
-
-            backMeshes.push(myMesh);
-          }
-
-          let script = "";
-
-          for (let i = 0; i < bottom.length; i++) {
-            script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + topMeshes[i] + "<br>" + leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + frontMeshes[i] + "<br>" + backMeshes[i] + "<br>";
-
-            if (i != 0) {
-              script += "mesh0.combine(mesh" + i + "); <br>";
-            }
-          }
-
-          script += "return Solid.make(mesh0);";
-
-          console.log(script);
-
-          document.getElementById('code').innerHTML = script;
-
-        } else {
-          alert("Refresh to enter a new equation!");
+          bottomMeshes.push(myMesh);
         }
 
-        // Color palette: https://colorhunt.co/palette/161696
+        // Making meshes - top mesh
+        for (let i = 0; i < bottom.length; i++) {
+          // Same z for all
+          let verticeOne = [10 * (i * width), 10 * bottom[i], 10 * Math.abs(bottom[i] - top[i])];
+          let verticeTwo = [10 * ((i * width) + width), 10 * bottom[i], 10 * Math.abs(bottom[i] - top[i])];
+          let verticeThree = [10 * (i * width), 10 * top[i], 10 * Math.abs(bottom[i] - top[i])];
+          let verticeFour = [10 * ((i * width) + width), 10 * top[i], 10 * Math.abs(bottom[i] - top[i])];
+          let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" +
+            verticeFour + "]);";
+
+          topMeshes.push(myMesh);
+        }
+
+        // Making meshes - left mesh
+        for (let i = 0; i < bottom.length; i++) {
+          // Same y for all
+          let verticeOne = [10 * (i * width), 10 * top[i], 0];
+          let verticeTwo = [10 * (i * width), 10 * top[i], 10 * Math.abs(bottom[i] - top[i])];
+          let verticeThree = [10 * ((i * width) + width), 10 * top[i], 0];
+          let verticeFour = [10 * ((i * width) + width), 10 * top[i], 10 * Math.abs(bottom[i] - top[i])];
+          let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" +
+            verticeFour + "]);";
+
+          leftMeshes.push(myMesh);
+        }
+
+        // Making meshes - right mesh
+        for (let i = 0; i < bottom.length; i++) {
+          // Same y for all
+          let verticeOne = [10 * (i * width), 10 * bottom[i], 0];
+          let verticeTwo = [10 * (i * width), 10 * bottom[i], 10 * Math.abs(bottom[i] - top[i])];
+          let verticeThree = [10 * ((i * width) + width), 10 * bottom[i], 0];
+          let verticeFour = [10 * ((i * width) + width), 10 * bottom[i], 10 * Math.abs(bottom[i] - top[i])];
+          let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" +
+            verticeFour + "]);";
+
+          rightMeshes.push(myMesh);
+        }
+
+        // Making meshes - front mesh
+        for (let i = 0; i < bottom.length; i++) {
+          // Same x for all
+          let verticeOne = [10 * (i * width), 10 * bottom[i], 0];
+          let verticeTwo = [10 * (i * width), 10 * bottom[i], 10 * Math.abs(bottom[i] - top[i])];
+          let verticeThree = [10 * (i * width), 10 * top[i], 0];
+          let verticeFour = [10 * (i * width), 10 * top[i], 10 * Math.abs(bottom[i] - top[i])];
+          let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" +
+            verticeFour + "]);";
+
+          frontMeshes.push(myMesh);
+        }
+
+        // Making meshes - back mesh
+        for (let i = 0; i < bottom.length; i++) {
+          // Same x for all
+          let verticeOne = [10 * ((i * width) + width), 10 * bottom[i], 0];
+          let verticeTwo = [10 * ((i * width) + width), 10 * bottom[i], 10 * Math.abs(bottom[i] - top[i])];
+          let verticeThree = [10 * ((i * width) + width), 10 * top[i], 0];
+          let verticeFour = [10 * ((i * width) + width), 10 * top[i], 10 * Math.abs(bottom[i] - top[i])];
+          let myMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree + "], [" +
+            verticeFour + "]);";
+
+          backMeshes.push(myMesh);
+        }
+
+        let script =
+          "var Conversions = Core.Conversions; var Debug = Core.Debug; var Path2D = Core.Path2D; var Point2D = Core.Point2D; var Point3D = Core.Point3D; var Matrix2D = Core.Matrix2D; var Matrix3D = Core.Matrix3D; var Mesh3D = Core.Mesh3D; var Plugin = Core.Plugin; var Tess = Core.Tess; var Sketch2D = Core.Sketch2D; var Solid = Core.Solid; var Vector2D = Core.Vector2D; var Vector3D = Core.Vector3D; function process(params) { ";
+
+        for (let i = 0; i < bottom.length; i++) {
+          script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + topMeshes[i] + "<br>" +
+            leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + frontMeshes[i] + "<br>" + backMeshes[i] + "<br>";
+
+          if (i != 0) {
+            script += "mesh0.combine(mesh" + i + "); <br>";
+          }
+        }
+
+        script += "return Solid.make(mesh0); }";
+
+        document.getElementById('code').innerHTML = script;
       });
 
+      function copyScript() {
+        /* Get the text field */
+        var copyText = document.getElementById("code");
+
+        /* Select the text field */
+        copyText.select();
+
+        /* Copy the text inside the text field */
+        document.execCommand("copy");
+
+        alert("Copied the text: " + copyText.value);
+      }
     </script>
 </body>
 
