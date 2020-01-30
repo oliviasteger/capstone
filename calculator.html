@@ -59,6 +59,7 @@
     #code {
       text-align: left;
       font-size: 10px;
+      margin: 20px;
     }
   </style>
 </head>
@@ -270,6 +271,53 @@
         console.log(bottom);
         console.log(top);
 
+        // Point format is (X, Y, Z)
+
+        for (let i = 0; i < bottom.length; i++) {
+          let bottomY = 0;
+          let topY = 0;
+
+          if (bottom[i] > top[i]) {
+            bottomY = top[i];
+            topY = bottom[i];
+          } else {
+            bottomY = bottom[i];
+            topY = top[i];
+          }
+
+          let verticeOne = [(10 * i * width), (10 * bottomY), 0];
+          let verticeTwo = [((10 * i * width) + width), (10 * bottomY), 0];
+          let verticeThree = [((10 * i * width) + width), (10 * topY), 0];
+          let verticeFour = [(10 * i * width), (10 * topY), 0];
+          let verticeFive = [(10 * i * width), (10 * bottomY), Math.abs(bottomY - topY)];
+          let verticeSix = [((10 * i * width) + width), (10 * bottomY), Math.abs(bottomY - topY)];
+          let verticeSeven = [((10 * i * width) + width), (10 * topY), Math.abs(bottomY - topY)];
+          let verticeEight = [(10 * i * width), (10 * topY), Math.abs(bottomY - topY)];
+
+          let bottomMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
+            "], [" + verticeFour + "]);";
+          let topMesh = "mesh" + i + ".quad([" + verticeFive + "], [" + verticeSix + "], [" + verticeSeven +
+            "], [" + verticeEight + "]);";
+          let leftMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeFive + "], [" + verticeEight +
+            "], [" + verticeFour + "]);";
+          let rightMesh = "mesh" + i + ".quad([" + verticeTwo + "], [" + verticeSix + "], [" + verticeSeven +
+            "], [" + verticeThree + "]);";
+          let frontMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeSix +
+            "], [" + verticeFive + "]);";
+          let backMesh = "mesh" + i + ".quad([" + verticeThree + "], [" + verticeSeven + "], [" + verticeEight +
+            "], [" + verticeFour + "]);";
+
+          bottomMeshes.push(bottomMesh);
+          topMeshes.push(topMesh);
+          leftMeshes.push(leftMesh);
+          rightMeshes.push(rightMesh);
+          frontMeshes.push(frontMesh);
+          backMeshes.push(backMesh);
+
+        }
+
+        /*
+
         // Making meshes - bottom mesh
         for (let i = 0; i < bottom.length; i++) {
           // Same z for all
@@ -286,6 +334,7 @@
         // Making meshes - top mesh
         for (let i = 0; i < bottom.length; i++) {
           // Same z for all
+          console.log(bottom[i], top[i]);
           let verticeOne = [10 * (i * width), 10 * bottom[i], 10 * Math.abs(bottom[i] - top[i])];
           let verticeTwo = [10 * ((i * width) + width), 10 * bottom[i], 10 * Math.abs(bottom[i] - top[i])];
           let verticeThree = [10 * (i * width), 10 * top[i], 10 * Math.abs(bottom[i] - top[i])];
@@ -347,6 +396,8 @@
 
           backMeshes.push(myMesh);
         }
+
+        */
 
         let script =
           "var Conversions = Core.Conversions; var Debug = Core.Debug; var Path2D = Core.Path2D; var Point2D = Core.Point2D; var Point3D = Core.Point3D; var Matrix2D = Core.Matrix2D; var Matrix3D = Core.Matrix3D; var Mesh3D = Core.Mesh3D; var Plugin = Core.Plugin; var Tess = Core.Tess; var Sketch2D = Core.Sketch2D; var Solid = Core.Solid; var Vector2D = Core.Vector2D; var Vector3D = Core.Vector3D; function process(params) { ";
