@@ -289,10 +289,10 @@
           let verticeTwo = [((10 * i * width) + width), (10 * bottomY), 0];
           let verticeThree = [((10 * i * width) + width), (10 * topY), 0];
           let verticeFour = [(10 * i * width), (10 * topY), 0];
-          let verticeFive = [(10 * i * width), (10 * bottomY), Math.abs(bottomY - topY)];
-          let verticeSix = [((10 * i * width) + width), (10 * bottomY), Math.abs(bottomY - topY)];
-          let verticeSeven = [((10 * i * width) + width), (10 * topY), Math.abs(bottomY - topY)];
-          let verticeEight = [(10 * i * width), (10 * topY), Math.abs(bottomY - topY)];
+          let verticeFive = [(10 * i * width), (10 * bottomY), (10 * Math.abs(bottomY - topY))];
+          let verticeSix = [((10 * i * width) + width), (10 * bottomY), (10 * Math.abs(bottomY - topY))];
+          let verticeSeven = [((10 * i * width) + width), (10 * topY), (10 * Math.abs(bottomY - topY))];
+          let verticeEight = [(10 * i * width), (10 * topY), (10 * Math.abs(bottomY - topY))];
 
           let bottomMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
             "], [" + verticeFour + "]);";
