@@ -22,7 +22,6 @@
       font-size: 16px;
       padding: 0px;
       margin: 0px;
-      align-items: left;
     }
 
     table {
@@ -34,12 +33,19 @@
       font-family: 'Oswald', sans-serif;
     }
 
+    tr {
+      padding: 0px;
+      margin: 0px;
+    }
+
+    td {
+      padding: 0px;
+      margin: 0px;
+    }
+
     #input-container {
       padding: 10px;
-      width: 35vw;
       height: 100%;
-      align-items: left;
-      background-color: moccasin;
     }
 
     input {
@@ -66,29 +72,18 @@
 
 <body>
   <center>
-    <table>
-      <tr>
-        <td>
-          <div id="input-container">
-            <h2>Equations to STL Files</h2>
-            <p>To use the calculator, enter the two equations that form the volume and change the slice width to your
-              desired
-              width. (Lower slice width, higher model quality.)</p>
-            <button id="help">Help</button><br>
-            <p>Equation One: <input type="text" id="eq1"></input></p>
-            <p>Equation Two: <input type="text" id="eq2"></input></p>
-            <p>Slice Width: <input type="text" id="width"></input></p>
-            <button id="calculate">Calculate</button><br>
-            <p id="area">Base Area: </p><br><br>
-            <button id="copy" onclick="copyScript()">Copy Script</button><br>
-          </div>
-        </td>
-        <td>
-          <iframe width="725" height="453" src="https://www.tinkercad.com/embed/ayvLigs6vC3?editbtn=1" frameborder="0"
-            marginwidth="0" marginheight="0" scrolling="no"></iframe>
-        </td>
-      </tr>
-    </table>
+    <div id="input-container">
+      <h2>Equations to STL Files</h2>
+      <p>To use the calculator, enter the two equations that form the volume <br>and change the slice width to your
+        desired
+        width. (Lower slice width, higher model quality.)</p>
+      <button id="help">Help</button> <button id="example">See an example</button><br><br>
+      <p>Equation One: <input type="text" id="eq1"></input></p>
+      <p>Equation Two: <input type="text" id="eq2"></input></p>
+      <p>Slice Width: <input type="text" id="width"></input></p><br>
+      <button id="calculate">Calculate</button>
+      <button id="copy" onclick="copyScript()">Copy Script</button><br>
+    </div>
 
     <p id="code"></p><br><br>
 
@@ -124,7 +119,7 @@
         // Calculate base area of solid
         var x = nerdamer(eq1).subtract(eq2);
         x = nerdamer('defint(' + x.toString() + ', 2, 0, x)');
-        document.getElementById('area').innerHTML = 'Base Area: ' + x.toString();
+        //document.getElementById('area').innerHTML = 'Base Area: ' + x.toString();
 
         let intersection1 = 0;
         let intersection2 = 0;
@@ -345,6 +340,10 @@
 
         alert("Copied the text: " + copyText.value);
       }
+
+      $("#example").click(function () {
+        window.location.href = "https://www.tinkercad.com/embed/ayvLigs6vC3?editbtn=1";
+      })
     </script>
 </body>
 
