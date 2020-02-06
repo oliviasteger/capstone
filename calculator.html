@@ -267,7 +267,7 @@
 
         // Point format is (X, Y, Z)
 
-        for (let i = 0; i < bottom.length - 1; i++) {
+        for (let i = 0; i < bottom.length; i++) {
           let bottomY = 0;
           let topY = 0;
 
@@ -280,12 +280,12 @@
           }
 
           let verticeOne = [(10 * i * width), (10 * bottomY), 0];
-          let verticeTwo = [(((10 * i * width) + (10 * width))), (10 * bottomY), 0];
-          let verticeThree = [(((10 * i * width) + (10 * width))), (10 * topY), 0];
+          let verticeTwo = [(((10 * i * width) + width)), (10 * bottomY), 0];
+          let verticeThree = [(((10 * i * width) + width)), (10 * topY), 0];
           let verticeFour = [(10 * i * width), (10 * topY), 0];
           let verticeFive = [(10 * i * width), (10 * bottomY), (10 * Math.abs(bottomY - topY))];
-          let verticeSix = [(((10 * i * width) + (10 * width))), (10 * bottomY), (10 * Math.abs(bottomY - topY))];
-          let verticeSeven = [(((10 * i * width) + (10 * width))), (10 * topY), (10 * Math.abs(bottomY - topY))];
+          let verticeSix = [(((10 * i * width) + width)), (10 * bottomY), (10 * Math.abs(bottomY - topY))];
+          let verticeSeven = [(((10 * i * width) + width)), (10 * topY), (10 * Math.abs(bottomY - topY))];
           let verticeEight = [(10 * i * width), (10 * topY), (10 * Math.abs(bottomY - topY))];
 
           let bottomMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
