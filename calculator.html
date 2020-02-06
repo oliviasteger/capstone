@@ -107,7 +107,9 @@
       }
 
       $("#help").click(function () {
-        alert("Enter two functions that have exactly two points of intersection.")
+        alert(
+          "Please enter two functions that have exactly two points of intersection. Then select the width that you would like the slices to be. \n \nTo use the script, open a new TinkerCad project. The open the dropdown that says 'Basic Shapes' and scroll to 'Your Shape Generators'. Click 'Your Shape Generators' and select 'Create Shape Generator.' Click 'New Shape Generator.' Select 'Empty' from the dropdown menu. In the tab on the left side of the screen, paste the code that was generated."
+        )
       })
 
       $("#calculate").click(function () {
@@ -265,7 +267,7 @@
 
         // Point format is (X, Y, Z)
 
-        for (let i = 0; i < bottom.length -1; i++) {
+        for (let i = 0; i < bottom.length - 1; i++) {
           let bottomY = 0;
           let topY = 0;
 
@@ -298,7 +300,7 @@
             "], [" + verticeFive + "]);";
           let backMesh = "mesh" + i + ".quad([" + verticeThree + "], [" + verticeSeven + "], [" + verticeEight +
             "], [" + verticeFour + "]);";
-          
+
           console.log(verticeOne[0], verticeTwo[0]);
 
           bottomMeshes.push(bottomMesh);
