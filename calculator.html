@@ -50,15 +50,15 @@
 
     input {
       font-family: 'Oswald', sans-serif;
-      height: 3vh;
-      width: 15vw;
+      height: 35px;
+      width: 200px;
       font-size: 16px;
     }
 
     button {
       font-family: 'Oswald', sans-serif;
-      height: 5vh;
-      width: 15vw;
+      height: 35px;
+      width: 200px;
       font-size: 16px;
     }
 
@@ -67,6 +67,14 @@
       font-size: 10px;
       margin: 20px;
     }
+
+    select {
+      font-family: 'Oswald', sans-serif;
+      height: 35px;
+      width: 200px;
+      font-size: 16px;
+      background-color: white;
+    }
   </style>
 </head>
 
@@ -74,15 +82,23 @@
   <center>
     <div id="input-container">
       <h2>Equations to STL Files</h2>
-      <p>To use the calculator, enter the two equations that form the volume <br>and change the slice width to your
-        desired
-        width. (Lower slice width, higher model quality.)</p>
+      <p>To use the calculator, enter the two equations that form the volume and change the slice width to your
+        desired width. <br> If the equations have more than two intersections, please enter the bounds in the text boxes
+        below. (Lower slice width, higher model quality.)</p>
       <button id="help">Help</button> <button id="example">See an example</button><br><br>
       <p>Equation One: <input type="text" id="eq1"></input></p>
       <p>Equation Two: <input type="text" id="eq2"></input></p>
       <p>Lower X Bound (If applicable): <input type="text" id="bound1"></input></p>
       <p>Upper X Bound (If applicable): <input type="text" id="bound2"></input></p>
-      <p>Slice Width: <input type="text" id="width"></input></p><br>
+      <p>Slice Width: <input type="text" id="width"></input></p>
+      <p>Slice Type:
+        <select id="slice-type">
+          <option value="square">Square</option>
+          <option value="rectangle">Rectangle</option>
+          <option value="right-triangle">Right Triangle</option>
+          <option value="equilateral-triangle">Equilateral Triangle</option>
+        </select></p><br>
+
       <button id="calculate">Calculate</button>
       <button id="copy" onclick="copyScript()">Copy Script</button><br>
     </div>
@@ -118,6 +134,99 @@
         myCbrt = string.split(myCbrt).join(myCbrtEval);
 
         return myCbrt.toString();
+      }
+
+      function generateSquareMeshes(bottom, top, width) {
+        let bottomMeshes = [];
+        let topMeshes = [];
+        let leftMeshes = [];
+        let rightMeshes = [];
+        let frontMeshes = [];
+        let backMeshes = [];
+
+        // Point format is (X, Y, Z)
+
+        for (let i = 0; i < bottom.length; i++) {
+          let bottomY = 0;
+          let topY = 0;
+
+          if (bottom[i] > top[i]) {
+            bottomY = top[i];
+            topY = bottom[i];
+          } else {
+            bottomY = bottom[i];
+            topY = top[i];
+          }
+
+          //console.log(bottom[i]);
+
+          // 9.9498 works
+
+          let verticeOne = [(10 * i * width), (10 * bottomY), 0];
+          let verticeTwo = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), 0];
+          let verticeThree = [(((10 * i * width) + (9.9498 * width))), (10 * topY), 0];
+          let verticeFour = [(10 * i * width), (10 * topY), 0];
+          let verticeFive = [(10 * i * width), (10 * bottomY), (10 * Math.abs(bottomY - topY))];
+          let verticeSix = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), (10 * Math.abs(bottomY -
+            topY))];
+          let verticeSeven = [(((10 * i * width) + (9.9498 * width))), (10 * topY), (10 * Math.abs(bottomY -
+            topY))];
+          let verticeEight = [(10 * i * width), (10 * topY), (10 * Math.abs(bottomY - topY))];
+
+          let bottomMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
+            "], [" + verticeFour + "]);";
+          let topMesh = "mesh" + i + ".quad([" + verticeFive + "], [" + verticeSix + "], [" + verticeSeven +
+            "], [" + verticeEight + "]);";
+          let leftMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeFive + "], [" + verticeEight +
+            "], [" + verticeFour + "]);";
+          let rightMesh = "mesh" + i + ".quad([" + verticeTwo + "], [" + verticeSix + "], [" + verticeSeven +
+            "], [" + verticeThree + "]);";
+          let frontMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeSix +
+            "], [" + verticeFive + "]);";
+          let backMesh = "mesh" + i + ".quad([" + verticeThree + "], [" + verticeSeven + "], [" + verticeEight +
+            "], [" + verticeFour + "]);";
+
+          bottomMeshes.push(bottomMesh);
+          topMeshes.push(topMesh);
+          leftMeshes.push(leftMesh);
+          rightMeshes.push(rightMesh);
+          frontMeshes.push(frontMesh);
+          backMeshes.push(backMesh);
+
+        }
+
+        let script =
+          "var Conversions = Core.Conversions; <br>var Debug = Core.Debug; <br>var Path2D = Core.Path2D; <br>var Point2D = Core.Point2D; <br>var Point3D = Core.Point3D; <br>var Matrix2D = Core.Matrix2D; <br>var Matrix3D = Core.Matrix3D; <br>var Mesh3D = Core.Mesh3D; <br>var Plugin = Core.Plugin; <br>var Tess = Core.Tess; <br>var Sketch2D = Core.Sketch2D; <br>var Solid = Core.Solid; <br>var Vector2D = Core.Vector2D; <br>var Vector3D = Core.Vector3D; <br>function process(params) { ";
+
+        for (let i = 0; i < bottom.length; i++) {
+          script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + topMeshes[i] + "<br>" +
+            leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + frontMeshes[i] + "<br>" + backMeshes[i] + "<br>";
+
+          if (i != 0) {
+            script += "mesh0.combine(mesh" + i + "); <br>";
+          }
+
+        }
+
+        script += "return Solid.make(mesh0); }";
+
+        document.getElementById('code').innerHTML = script;
+      }
+
+      function generateTriangleMeshes() {
+
+      }
+
+      function generateRightTriangleMeshes() {
+
+      }
+
+      function generateSemicircle() {
+
+      }
+
+      function generateRectangle(heightRatio) {
+
       }
 
       $("#help").click(function () {
@@ -320,80 +429,12 @@
           top.push(eq2solution);
         }
 
-        let bottomMeshes = [];
-        let topMeshes = [];
-        let leftMeshes = [];
-        let rightMeshes = [];
-        let frontMeshes = [];
-        let backMeshes = [];
+        if ($("#slice-type option:selected").val() == "square") {
+          generateSquareMeshes(bottom, top, width);
+        } else if ($("#slice-type option:selected").val() == "rectangle") {
 
-        // Point format is (X, Y, Z)
-
-        for (let i = 0; i < bottom.length; i++) {
-          let bottomY = 0;
-          let topY = 0;
-
-          if (bottom[i] > top[i]) {
-            bottomY = top[i];
-            topY = bottom[i];
-          } else {
-            bottomY = bottom[i];
-            topY = top[i];
-          }
-
-          //console.log(bottom[i]);
-
-          // 9.9498 works
-
-          let verticeOne = [(10 * i * width), (10 * bottomY), 0];
-          let verticeTwo = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), 0];
-          let verticeThree = [(((10 * i * width) + (9.9498 * width))), (10 * topY), 0];
-          let verticeFour = [(10 * i * width), (10 * topY), 0];
-          let verticeFive = [(10 * i * width), (10 * bottomY), (10 * Math.abs(bottomY - topY))];
-          let verticeSix = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), (10 * Math.abs(bottomY -
-            topY))];
-          let verticeSeven = [(((10 * i * width) + (9.9498 * width))), (10 * topY), (10 * Math.abs(bottomY -
-            topY))];
-          let verticeEight = [(10 * i * width), (10 * topY), (10 * Math.abs(bottomY - topY))];
-
-          let bottomMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
-            "], [" + verticeFour + "]);";
-          let topMesh = "mesh" + i + ".quad([" + verticeFive + "], [" + verticeSix + "], [" + verticeSeven +
-            "], [" + verticeEight + "]);";
-          let leftMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeFive + "], [" + verticeEight +
-            "], [" + verticeFour + "]);";
-          let rightMesh = "mesh" + i + ".quad([" + verticeTwo + "], [" + verticeSix + "], [" + verticeSeven +
-            "], [" + verticeThree + "]);";
-          let frontMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeSix +
-            "], [" + verticeFive + "]);";
-          let backMesh = "mesh" + i + ".quad([" + verticeThree + "], [" + verticeSeven + "], [" + verticeEight +
-            "], [" + verticeFour + "]);";
-
-          bottomMeshes.push(bottomMesh);
-          topMeshes.push(topMesh);
-          leftMeshes.push(leftMesh);
-          rightMeshes.push(rightMesh);
-          frontMeshes.push(frontMesh);
-          backMeshes.push(backMesh);
 
         }
-
-        let script =
-          "var Conversions = Core.Conversions; <br>var Debug = Core.Debug; <br>var Path2D = Core.Path2D; <br>var Point2D = Core.Point2D; <br>var Point3D = Core.Point3D; <br>var Matrix2D = Core.Matrix2D; <br>var Matrix3D = Core.Matrix3D; <br>var Mesh3D = Core.Mesh3D; <br>var Plugin = Core.Plugin; <br>var Tess = Core.Tess; <br>var Sketch2D = Core.Sketch2D; <br>var Solid = Core.Solid; <br>var Vector2D = Core.Vector2D; <br>var Vector3D = Core.Vector3D; <br>function process(params) { ";
-
-        for (let i = 0; i < bottom.length; i++) {
-          script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + topMeshes[i] + "<br>" +
-            leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + frontMeshes[i] + "<br>" + backMeshes[i] + "<br>";
-
-          if (i != 0) {
-            script += "mesh0.combine(mesh" + i + "); <br>";
-          }
-
-        }
-
-        script += "return Solid.make(mesh0); }";
-
-        document.getElementById('code').innerHTML = script;
       });
 
       function copyScript() {
