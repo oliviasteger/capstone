@@ -134,8 +134,8 @@
         }
 
         function evalCubeRoot(string, i) {
-          var myCbrt = 'cbrt((' + i + '))'
-          var myCbrtEval = "" + Math.cbrt(i);
+          let myCbrt = 'cbrt((' + i + '))'
+          let myCbrtEval = "" + Math.cbrt(i);
           myCbrt = string.split(myCbrt).join(myCbrtEval);
 
           return myCbrt.toString();
@@ -278,8 +278,69 @@
           document.getElementById('code').innerHTML = script;
         }
 
-        function generateRightTriangleMeshes() {
+        function generateRightTriangleMeshes(bottom, top, width) {
+          let bottomMeshes = [];
+          let leftMeshes = [];
+          let rightMeshes = [];
+          let frontTopMeshes = [];
+          let backTopMeshes = [];
 
+          // Point format is (X, Y, Z)
+
+          for (let i = 0; i < bottom.length; i++) {
+            let bottomY = 0;
+            let topY = 0;
+
+            if (bottom[i] > top[i]) {
+              bottomY = top[i];
+              topY = bottom[i];
+            } else {
+              bottomY = bottom[i];
+              topY = top[i];
+            }
+
+            let verticeOne = [(10 * i * width), (10 * bottomY), 0];
+            let verticeTwo = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), 0];
+            let verticeThree = [(((10 * i * width) + (9.9498 * width))), (10 * topY), 0];
+            let verticeFour = [(10 * i * width), (10 * topY), 0];
+            let verticeFive = [(10 * i * width), (10 * bottomY), (10 * Math.abs(bottomY - topY))];
+            let verticeSix = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), (10 * Math.abs(bottomY -
+              topY))];
+
+            let bottomMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
+              "], [" + verticeFour + "]);";
+            let leftMesh = "mesh" + i + ".triangle([" + verticeOne + "], [" + verticeFour + "], [" + verticeFive +
+              "]);";
+            let rightMesh = "mesh" + i + ".triangle([" + verticeTwo + "], [" + verticeThree + "], [" + verticeSix +
+              "]);";
+            let frontTopMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeSix +
+              "], [" + verticeFive + "]);";
+            let backTopMesh = "mesh" + i + ".quad([" + verticeThree + "], [" + verticeFour + "], [" + verticeFive +
+              "], [" + verticeSix + "]);";
+
+            bottomMeshes.push(bottomMesh);
+            leftMeshes.push(leftMesh);
+            rightMeshes.push(rightMesh);
+            frontTopMeshes.push(frontTopMesh);
+            backTopMeshes.push(backTopMesh);
+          }
+
+          let script =
+            "var Conversions = Core.Conversions; <br>var Debug = Core.Debug; <br>var Path2D = Core.Path2D; <br>var Point2D = Core.Point2D; <br>var Point3D = Core.Point3D; <br>var Matrix2D = Core.Matrix2D; <br>var Matrix3D = Core.Matrix3D; <br>var Mesh3D = Core.Mesh3D; <br>var Plugin = Core.Plugin; <br>var Tess = Core.Tess; <br>var Sketch2D = Core.Sketch2D; <br>var Solid = Core.Solid; <br>var Vector2D = Core.Vector2D; <br>var Vector3D = Core.Vector3D; <br><br>function process(params) { <br>";
+
+          for (let i = 0; i < bottom.length; i++) {
+            script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + frontTopMeshes[i] + "<br>" +
+              leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + backTopMeshes[i] + "<br><br>";
+
+            if (i != 0) {
+              script += "mesh0.combine(mesh" + i + "); <br><br>";
+            }
+
+          }
+
+          script += "return Solid.make(mesh0); }";
+
+          document.getElementById('code').innerHTML = script;
         }
 
         function generateSemicircle() {
@@ -298,15 +359,13 @@
 
         $("#calculate").click(function () {
           // Set variables for both equations
-          var eq1 = document.getElementById('eq1').value;
-          var eq2 = document.getElementById('eq2').value;
+          let eq1 = document.getElementById('eq1').value;
+          let eq2 = document.getElementById('eq2').value;
 
-
-
-          var width = 0.01;
+          const width = 0.01;
 
           // Calculate base area of solid
-          var x = nerdamer(eq1).subtract(eq2);
+          let x = nerdamer(eq1).subtract(eq2);
           x = nerdamer('defint(' + x.toString() + ', 2, 0, x)');
           //document.getElementById('area').innerHTML = 'Base Area: ' + x.toString();
 
@@ -316,14 +375,14 @@
           // Get solutions for equations
           nerdamer.set('SOLUTIONS_AS_OBJECT', false);
           let z = eq1 + '=' + eq2;
-          var sol = nerdamer.solveEquations(z, 'x').toString();
-          var xpoints = sol.split(',');
-          var ypoints = [];
-          var points = [];
+          let sol = nerdamer.solveEquations(z, 'x').toString();
+          let xpoints = sol.split(',');
+          let ypoints = [];
+          let points = [];
 
-          var bottom = [];
-          var top = [];
-          var labels = [];
+          let bottom = [];
+          let top = [];
+          let labels = [];
 
           let xMin;
           let xMax;
@@ -496,12 +555,14 @@
             generateSquareMeshes(bottom, top, width);
           } else if ($("#slice-type option:selected").val() == "equilateral-triangle") {
             generateTriangleMeshes(bottom, top, width);
+          } else if ($("#slice-type option:selected").val() == "right-triangle") {
+            generateRightTriangleMeshes(bottom, top, width);
           }
         });
 
         function copyScript() {
           /* Get the text field */
-          var copyText = document.getElementById("code");
+          const copyText = document.getElementById("code");
 
           /* Select the text field */
           copyText.select();
