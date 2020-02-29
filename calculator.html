@@ -7,7 +7,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Oswald&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Maven+Pro:400,700&display=swap" rel="stylesheet">
   <script src="nerdamer.core.js"></script>
   <script src="Algebra.js"></script>
   <script src="Calculus.js"></script>
@@ -16,369 +16,359 @@
   <title>Square Integration</title>
   <style>
     body {
-      font-family: 'Open Sans', sans-serif;
-      background-color: '#f8f8f8';
-      color: '#2b2b28';
-      font-size: 16px;
-      padding: 0px;
       margin: 0px;
+      padding: 0px;
+      font-family: 'Maven Pro';
     }
 
     table {
-      margin: 0px;
-      padding: 0px;
-    }
-
-    h2 {
-      font-family: 'Oswald', sans-serif;
-    }
-
-    tr {
-      padding: 0px;
-      margin: 0px;
-    }
-
-    td {
-      padding: 0px;
-      margin: 0px;
-    }
-
-    #input-container {
-      padding: 10px;
+      width: 100%;
       height: 100%;
+      margin: 0px;
+      padding: 0px;
     }
 
+    #sidebar {
+      background-color: navy;
+      width: 15vw;
+      margin: 0px;
+      top: 0;
+      left: 0;
+      position: -webkit-fixed;
+      position: fixed;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      height: 100vh;
+    }
+
+    #main {
+      background-color: white;
+      width: 82vw;
+      margin: 0px;
+      padding-left: 0px;
+    }
+
+    button,
     input {
-      font-family: 'Oswald', sans-serif;
-      height: 35px;
-      width: 200px;
+      font-family: 'Maven Pro';
       font-size: 16px;
+      width: 150px;
+      padding: 3px;
+      border-radius: 2px;
+      border: 1px solid #fff;
+      background-color: #fff;
+      margin-top: 5px;
+      margin-bottom: 5px;
     }
 
     button {
-      font-family: 'Oswald', sans-serif;
-      height: 35px;
-      width: 200px;
-      font-size: 16px;
+      font-weight: bold;
     }
 
     #code {
-      text-align: left;
-      font-size: 10px;
-      margin: 20px;
+      font-size: 11px;
     }
 
     select {
-      font-family: 'Oswald', sans-serif;
-      height: 35px;
-      width: 200px;
+      font-family: 'Maven Pro';
       font-size: 16px;
-      background-color: white;
+      width: 160px;
+      height: 25px;
+      padding: 5px;
+      border: 1px solid #fff;
+      background: #fff !important;
+      margin-top: 5px;
+      margin-bottom: 5px;
     }
   </style>
 </head>
 
 <body>
-  <center>
-    <div id="input-container">
-      <h2>Equations to STL Files</h2>
-      <p>To use the calculator, enter the two equations that form the volume and change the slice width to your
-        desired width. <br> If the equations have more than two intersections, please enter the bounds in the text boxes
-        below. (Lower slice width, higher model quality.)</p>
-      <button id="help">Help</button> <button id="example">See an example</button><br><br>
-      <p>Equation One: <input type="text" id="eq1"></input></p>
-      <p>Equation Two: <input type="text" id="eq2"></input></p>
-      <p>Lower X Bound (If applicable): <input type="text" id="bound1"></input></p>
-      <p>Upper X Bound (If applicable): <input type="text" id="bound2"></input></p>
-      <p>Slice Width: <input type="text" id="width"></input></p>
-      <p>Slice Type:
+  <table>
+    <tr>
+      <td id="sidebar">
+        <h2>Equations to 3D Models</h2>
+        <p>Need help? Click the help button for directions.</p>
+        <input id="eq1" placeholder="Equation One"></input>
+        <input id="eq2" placeholder="Equation Two"></input>
+        <input id="bound1" placeholder="Lower Bound (Optional)"></input>
+        <input id="bound2" placeholder="Upper Bound (Optional)"></input>
         <select id="slice-type">
           <option value="square">Square</option>
           <option value="rectangle">Rectangle</option>
           <option value="right-triangle">Right Triangle</option>
           <option value="equilateral-triangle">Equilateral Triangle</option>
-        </select></p><br>
+        </select><br><br>
+        <button id="calculate">Calculate</button><br>
+        <button id="copy" onclick="copyScript()">Copy Script</button><br><br>
+        <button id="help">Help</button><br>
+        <button id="example">See an example</button>
+      </td>
+      <td id="main">
+        <p id="code"></p>
+      </td>
+    </tr>
+    <table>
 
-      <button id="calculate">Calculate</button>
-      <button id="copy" onclick="copyScript()">Copy Script</button><br>
-    </div>
+      <script>
+        // Set default equation values
+        document.getElementById('eq1').value = "2*x^2 - 6*x + 4";
+        document.getElementById('eq2').value = "4*cos(pi*x/4)";
+        document.getElementById('bound1').value = "0";
+        document.getElementById('bound2').value = "2";
 
-    <p id="code"></p><br><br>
+        let update = false;
 
-    <script>
-      // Set default equation values
-      document.getElementById('eq1').value = "2*x^2 - 6*x + 4";
-      document.getElementById('eq2').value = "4*cos(pi*x/4)";
-      document.getElementById('bound1').value = "0";
-      document.getElementById('bound2').value = "2";
-      document.getElementById('width').value = "0.01";
+        // Replaced trig functions and pi in equations
+        function edit(string) {
+          string = string.replace(/pi/g, 'Math.PI');
+          string = string.replace(/sin/g, 'Math.sin');
+          string = string.replace(/cos/g, 'Math.cos');
+          string = string.replace(/tan/g, 'Math.tan');
+          string = string.replace(/sqrt/g, 'Math.sqrt');
+          string = string.replace(/cbrt/g, 'Math.cbrt');
+          string = string.replace(/abs/g, 'Math.abs');
 
-      let update = false;
+          return string;
+        }
 
-      // Replaced trig functions and pi in equations
-      function edit(string) {
-        string = string.replace(/pi/g, 'Math.PI');
-        string = string.replace(/sin/g, 'Math.sin');
-        string = string.replace(/cos/g, 'Math.cos');
-        string = string.replace(/tan/g, 'Math.tan');
-        string = string.replace(/sqrt/g, 'Math.sqrt');
-        string = string.replace(/cbrt/g, 'Math.cbrt');
-        string = string.replace(/abs/g, 'Math.abs');
+        function evalCubeRoot(string, i) {
+          var myCbrt = 'cbrt((' + i + '))'
+          var myCbrtEval = "" + Math.cbrt(i);
+          myCbrt = string.split(myCbrt).join(myCbrtEval);
 
-        return string;
-      }
+          return myCbrt.toString();
+        }
 
-      function evalCubeRoot(string, i) {
-        var myCbrt = 'cbrt((' + i + '))'
-        var myCbrtEval = "" + Math.cbrt(i);
-        myCbrt = string.split(myCbrt).join(myCbrtEval);
+        function generateSquareMeshes(bottom, top, width) {
+          let bottomMeshes = [];
+          let topMeshes = [];
+          let leftMeshes = [];
+          let rightMeshes = [];
+          let frontMeshes = [];
+          let backMeshes = [];
 
-        return myCbrt.toString();
-      }
+          // Point format is (X, Y, Z)
 
-      function generateSquareMeshes(bottom, top, width) {
-        let bottomMeshes = [];
-        let topMeshes = [];
-        let leftMeshes = [];
-        let rightMeshes = [];
-        let frontMeshes = [];
-        let backMeshes = [];
+          for (let i = 0; i < bottom.length; i++) {
+            let bottomY = 0;
+            let topY = 0;
 
-        // Point format is (X, Y, Z)
+            if (bottom[i] > top[i]) {
+              bottomY = top[i];
+              topY = bottom[i];
+            } else {
+              bottomY = bottom[i];
+              topY = top[i];
+            }
 
-        for (let i = 0; i < bottom.length; i++) {
-          let bottomY = 0;
-          let topY = 0;
+            //console.log(bottom[i]);
 
-          if (bottom[i] > top[i]) {
-            bottomY = top[i];
-            topY = bottom[i];
-          } else {
-            bottomY = bottom[i];
-            topY = top[i];
+            // 9.9498 works
+
+            let verticeOne = [(10 * i * width), (10 * bottomY), 0];
+            let verticeTwo = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), 0];
+            let verticeThree = [(((10 * i * width) + (9.9498 * width))), (10 * topY), 0];
+            let verticeFour = [(10 * i * width), (10 * topY), 0];
+            let verticeFive = [(10 * i * width), (10 * bottomY), (10 * Math.abs(bottomY - topY))];
+            let verticeSix = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), (10 * Math.abs(bottomY -
+              topY))];
+            let verticeSeven = [(((10 * i * width) + (9.9498 * width))), (10 * topY), (10 * Math.abs(bottomY -
+              topY))];
+            let verticeEight = [(10 * i * width), (10 * topY), (10 * Math.abs(bottomY - topY))];
+
+            let bottomMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
+              "], [" + verticeFour + "]);";
+            let topMesh = "mesh" + i + ".quad([" + verticeFive + "], [" + verticeSix + "], [" + verticeSeven +
+              "], [" + verticeEight + "]);";
+            let leftMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeFive + "], [" + verticeEight +
+              "], [" + verticeFour + "]);";
+            let rightMesh = "mesh" + i + ".quad([" + verticeTwo + "], [" + verticeSix + "], [" + verticeSeven +
+              "], [" + verticeThree + "]);";
+            let frontMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeSix +
+              "], [" + verticeFive + "]);";
+            let backMesh = "mesh" + i + ".quad([" + verticeThree + "], [" + verticeSeven + "], [" + verticeEight +
+              "], [" + verticeFour + "]);";
+
+            bottomMeshes.push(bottomMesh);
+            topMeshes.push(topMesh);
+            leftMeshes.push(leftMesh);
+            rightMeshes.push(rightMesh);
+            frontMeshes.push(frontMesh);
+            backMeshes.push(backMesh);
+
           }
 
-          //console.log(bottom[i]);
+          let script =
+            "var Conversions = Core.Conversions; <br>var Debug = Core.Debug; <br>var Path2D = Core.Path2D; <br>var Point2D = Core.Point2D; <br>var Point3D = Core.Point3D; <br>var Matrix2D = Core.Matrix2D; <br>var Matrix3D = Core.Matrix3D; <br>var Mesh3D = Core.Mesh3D; <br>var Plugin = Core.Plugin; <br>var Tess = Core.Tess; <br>var Sketch2D = Core.Sketch2D; <br>var Solid = Core.Solid; <br>var Vector2D = Core.Vector2D; <br>var Vector3D = Core.Vector3D; <br><br>function process(params) { <br>";
 
-          // 9.9498 works
+          for (let i = 0; i < bottom.length; i++) {
+            script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + topMeshes[i] + "<br>" +
+              leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + frontMeshes[i] + "<br>" + backMeshes[i] + "<br><br>";
 
-          let verticeOne = [(10 * i * width), (10 * bottomY), 0];
-          let verticeTwo = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), 0];
-          let verticeThree = [(((10 * i * width) + (9.9498 * width))), (10 * topY), 0];
-          let verticeFour = [(10 * i * width), (10 * topY), 0];
-          let verticeFive = [(10 * i * width), (10 * bottomY), (10 * Math.abs(bottomY - topY))];
-          let verticeSix = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), (10 * Math.abs(bottomY -
-            topY))];
-          let verticeSeven = [(((10 * i * width) + (9.9498 * width))), (10 * topY), (10 * Math.abs(bottomY -
-            topY))];
-          let verticeEight = [(10 * i * width), (10 * topY), (10 * Math.abs(bottomY - topY))];
+            if (i != 0) {
+              script += "mesh0.combine(mesh" + i + "); <br><br>";
+            }
 
-          let bottomMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
-            "], [" + verticeFour + "]);";
-          let topMesh = "mesh" + i + ".quad([" + verticeFive + "], [" + verticeSix + "], [" + verticeSeven +
-            "], [" + verticeEight + "]);";
-          let leftMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeFive + "], [" + verticeEight +
-            "], [" + verticeFour + "]);";
-          let rightMesh = "mesh" + i + ".quad([" + verticeTwo + "], [" + verticeSix + "], [" + verticeSeven +
-            "], [" + verticeThree + "]);";
-          let frontMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeSix +
-            "], [" + verticeFive + "]);";
-          let backMesh = "mesh" + i + ".quad([" + verticeThree + "], [" + verticeSeven + "], [" + verticeEight +
-            "], [" + verticeFour + "]);";
-
-          bottomMeshes.push(bottomMesh);
-          topMeshes.push(topMesh);
-          leftMeshes.push(leftMesh);
-          rightMeshes.push(rightMesh);
-          frontMeshes.push(frontMesh);
-          backMeshes.push(backMesh);
-
-        }
-
-        let script =
-          "var Conversions = Core.Conversions; <br>var Debug = Core.Debug; <br>var Path2D = Core.Path2D; <br>var Point2D = Core.Point2D; <br>var Point3D = Core.Point3D; <br>var Matrix2D = Core.Matrix2D; <br>var Matrix3D = Core.Matrix3D; <br>var Mesh3D = Core.Mesh3D; <br>var Plugin = Core.Plugin; <br>var Tess = Core.Tess; <br>var Sketch2D = Core.Sketch2D; <br>var Solid = Core.Solid; <br>var Vector2D = Core.Vector2D; <br>var Vector3D = Core.Vector3D; <br>function process(params) { ";
-
-        for (let i = 0; i < bottom.length; i++) {
-          script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + topMeshes[i] + "<br>" +
-            leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + frontMeshes[i] + "<br>" + backMeshes[i] + "<br>";
-
-          if (i != 0) {
-            script += "mesh0.combine(mesh" + i + "); <br>";
           }
 
+          script += "return Solid.make(mesh0); }";
+
+          document.getElementById('code').innerHTML = script;
         }
 
-        script += "return Solid.make(mesh0); }";
+        function generateTriangleMeshes() {
 
-        document.getElementById('code').innerHTML = script;
-      }
-
-      function generateTriangleMeshes() {
-
-      }
-
-      function generateRightTriangleMeshes() {
-
-      }
-
-      function generateSemicircle() {
-
-      }
-
-      function generateRectangle(heightRatio) {
-
-      }
-
-      $("#help").click(function () {
-        alert(
-          "Please enter two functions that have exactly two points of intersection. Then select the width that you would like the slices to be. \n \nTo use the script, open a new TinkerCad project. The open the dropdown that says 'Basic Shapes' and scroll to 'Your Shape Generators'. Click 'Your Shape Generators' and select 'Create Shape Generator.' Click 'New Shape Generator.' Select 'Empty' from the dropdown menu. In the tab on the left side of the screen, paste the code that was generated."
-        )
-      })
-
-      $("#calculate").click(function () {
-        // Set variables for both equations
-        var eq1 = document.getElementById('eq1').value;
-        var eq2 = document.getElementById('eq2').value;
-
-        var width = eval(document.getElementById('width').value);
-
-        // Calculate base area of solid
-        var x = nerdamer(eq1).subtract(eq2);
-        x = nerdamer('defint(' + x.toString() + ', 2, 0, x)');
-        //document.getElementById('area').innerHTML = 'Base Area: ' + x.toString();
-
-        let intersection1 = 0;
-        let intersection2 = 0;
-
-        // Get solutions for equations
-        nerdamer.set('SOLUTIONS_AS_OBJECT', false);
-        let z = eq1 + '=' + eq2;
-        var sol = nerdamer.solveEquations(z, 'x').toString();
-        var xpoints = sol.split(',');
-        var ypoints = [];
-        var points = [];
-
-        var bottom = [];
-        var top = [];
-        var labels = [];
-
-        let xMin;
-        let xMax;
-
-        let yMin;
-        let yMax;
-
-        for (let i = 0; i < xpoints.length; i++) {
-          xpoints[i] = edit(xpoints[i]);
-          console.log(xpoints[i]);
-          xpoints[i] = eval(xpoints[i]);
         }
 
-        xpoints.sort();
+        function generateRightTriangleMeshes() {
 
-        // See if the lines intersect at the solutions
-        for (let i = 0; i < xpoints.length; i++) {
-          let eq1edit = 'y = ' + eq1.replace(/x/g, '(' + xpoints[i] + ')');
-          let eq2edit = 'y = ' + eq2.replace(/x/g, '(' + xpoints[i] + ')');
+        }
 
-          let eq1solution = nerdamer.solve(eq1edit, 'y').toString();
-          eq1solution = edit(eq1solution);
-          eq1solution = eval(eq1solution);
+        function generateSemicircle() {
 
-          let eq2solution = nerdamer('solve(' + eq2edit + ', y)').toString();
-          eq2solution = edit(eq2solution);
-          eq2solution = eval(eq2solution);
+        }
 
-          // If the two y-values are the same, it becomes a point
-          if (eq1solution[0] === eq2solution[0]) {
-            ypoints[i] = eq1solution[0];
-          } else {
-            ypoints[i] = null;
+        function generateRectangle(heightRatio) {
+
+        }
+
+        $("#help").click(function () {
+          alert(
+            "Please enter two functions that have exactly two points of intersection. Then select the width that you would like the slices to be. \n \nTo use the script, open a new TinkerCad project. The open the dropdown that says 'Basic Shapes' and scroll to 'Your Shape Generators'. Click 'Your Shape Generators' and select 'Create Shape Generator.' Click 'New Shape Generator.' Select 'Empty' from the dropdown menu. In the tab on the left side of the screen, paste the code that was generated."
+          )
+        })
+
+        $("#calculate").click(function () {
+          // Set variables for both equations
+          var eq1 = document.getElementById('eq1').value;
+          var eq2 = document.getElementById('eq2').value;
+
+
+
+          var width = 0.01;
+
+          // Calculate base area of solid
+          var x = nerdamer(eq1).subtract(eq2);
+          x = nerdamer('defint(' + x.toString() + ', 2, 0, x)');
+          //document.getElementById('area').innerHTML = 'Base Area: ' + x.toString();
+
+          let intersection1 = 0;
+          let intersection2 = 0;
+
+          // Get solutions for equations
+          nerdamer.set('SOLUTIONS_AS_OBJECT', false);
+          let z = eq1 + '=' + eq2;
+          var sol = nerdamer.solveEquations(z, 'x').toString();
+          var xpoints = sol.split(',');
+          var ypoints = [];
+          var points = [];
+
+          var bottom = [];
+          var top = [];
+          var labels = [];
+
+          let xMin;
+          let xMax;
+
+          let yMin;
+          let yMax;
+
+          for (let i = 0; i < xpoints.length; i++) {
+            xpoints[i] = edit(xpoints[i]);
+            console.log(xpoints[i]);
+            xpoints[i] = eval(xpoints[i]);
           }
-        }
 
-        let tempx = [];
-        let tempy = [];
+          xpoints.sort();
 
-        // Create separate x and y arrays
-        for (let i = 0; i < ypoints.length; i++) {
-          if (ypoints[i] !== null) {
-            tempx.push(xpoints[i]);
-            tempy.push(ypoints[i]);
+          // See if the lines intersect at the solutions
+          for (let i = 0; i < xpoints.length; i++) {
+            let eq1edit = 'y = ' + eq1.replace(/x/g, '(' + xpoints[i] + ')');
+            let eq2edit = 'y = ' + eq2.replace(/x/g, '(' + xpoints[i] + ')');
+
+            let eq1solution = nerdamer.solve(eq1edit, 'y').toString();
+            eq1solution = edit(eq1solution);
+            eq1solution = eval(eq1solution);
+
+            let eq2solution = nerdamer('solve(' + eq2edit + ', y)').toString();
+            eq2solution = edit(eq2solution);
+            eq2solution = eval(eq2solution);
+
+            // If the two y-values are the same, it becomes a point
+            if (eq1solution[0] === eq2solution[0]) {
+              ypoints[i] = eq1solution[0];
+            } else {
+              ypoints[i] = null;
+            }
           }
-        }
 
-        ypoints = tempy;
-        xpoints = tempx;
+          let tempx = [];
+          let tempy = [];
 
-        // Create array of (x, y) points
-        for (let i = 0; i < xpoints.length; i++) {
-          if (ypoints[i] !== null) {
-            points[i] = [xpoints[i], ypoints[i]];
+          // Create separate x and y arrays
+          for (let i = 0; i < ypoints.length; i++) {
+            if (ypoints[i] !== null) {
+              tempx.push(xpoints[i]);
+              tempy.push(ypoints[i]);
+            }
           }
-        }
 
-        if (points.length == 0) {
-          if (document.getElementById('bound1').value != "null") {
-            if (document.getElementById('bound2').value != "null") {
-              let lowerBound = Number(document.getElementById('bound1').value);
-              let upperBound = Number(document.getElementById('bound2').value);
+          ypoints = tempy;
+          xpoints = tempx;
 
-              let lowerEdit = 'y = ' + eq1.replace(/x/g, '(' + lowerBound + ')');
-              let upperEdit = 'y = ' + eq2.replace(/x/g, '(' + upperBound + ')');
+          // Create array of (x, y) points
+          for (let i = 0; i < xpoints.length; i++) {
+            if (ypoints[i] !== null) {
+              points[i] = [xpoints[i], ypoints[i]];
+            }
+          }
 
-              let lowerSolution = nerdamer.solve(lowerEdit, 'y').toString();
-              lowerSolution = edit(lowerSolution);
-              lowerSolution = Number(eval(lowerSolution));
+          if (points.length == 0) {
+            if (document.getElementById('bound1').value != "null") {
+              if (document.getElementById('bound2').value != "null") {
+                let lowerBound = Number(document.getElementById('bound1').value);
+                let upperBound = Number(document.getElementById('bound2').value);
 
-              let upperSolution = nerdamer.solve(upperEdit, 'y').toString();
-              upperSolution = edit(upperSolution);
-              upperSolution = Number(eval(upperSolution));
+                let lowerEdit = 'y = ' + eq1.replace(/x/g, '(' + lowerBound + ')');
+                let upperEdit = 'y = ' + eq2.replace(/x/g, '(' + upperBound + ')');
+
+                let lowerSolution = nerdamer.solve(lowerEdit, 'y').toString();
+                lowerSolution = edit(lowerSolution);
+                lowerSolution = Number(eval(lowerSolution));
+
+                let upperSolution = nerdamer.solve(upperEdit, 'y').toString();
+                upperSolution = edit(upperSolution);
+                upperSolution = Number(eval(upperSolution));
 
 
-              points[0] = [lowerBound, lowerSolution];
-              points[1] = [upperBound, upperSolution];
+                points[0] = [lowerBound, lowerSolution];
+                points[1] = [upperBound, upperSolution];
 
+              } else {
+                alert("These equations have more than two solutions. Please insert bounds.");
+              }
             } else {
               alert("These equations have more than two solutions. Please insert bounds.");
             }
-          } else {
-            alert("These equations have more than two solutions. Please insert bounds.");
           }
-        }
 
-        xMin = points[0][0];
-        xMax = points[1][0];
+          xMin = points[0][0];
+          xMax = points[1][0];
 
-        for (let i = points[0][0]; i <= points[1][0] + width; i = i + width) {
-          // Create labels for the graph
-          labels.push(Math.round(1000 * i) / 1000);
+          for (let i = points[0][0]; i <= points[1][0] + width; i = i + width) {
+            // Create labels for the graph
+            labels.push(Math.round(1000 * i) / 1000);
 
-          // Create both equations again
-          let eq1edit = 'y = ' + eq1.replace(/x/g, '(' + i + ')');
-          let eq2edit = 'y = ' + eq2.replace(/x/g, '(' + i + ')');
+            // Create both equations again
+            let eq1edit = 'y = ' + eq1.replace(/x/g, '(' + i + ')');
+            let eq2edit = 'y = ' + eq2.replace(/x/g, '(' + i + ')');
 
-          eq1edit = evalCubeRoot(eq1edit, i);
-          eq2edit = evalCubeRoot(eq2edit, i)
-
-          // Solve equation 1 for its y value at the specified x value
-          let eq1solution = nerdamer('solve(' + eq1edit + ', y)').toString();
-          eq1solution = eq1solution.split(',')[0];
-          eq1solution = edit(eq1solution).toString();
-          eq1solution = Number(eval(eq1solution.substring(1, eq1solution.length - 1)));
-
-          // Solve equation 2 for its y value at the specified x value
-          let eq2solution = nerdamer('solve(' + eq2edit + ', y)').toString();
-          eq2solution = eq2solution.split(',')[0];
-          eq2solution = edit(eq2solution).toString();
-          eq2solution = Number(eval(eq2solution.substring(1, eq2solution.length - 1)));
-
-          if (eq1solution == NaN || eq2solution == NaN) {
             eq1edit = evalCubeRoot(eq1edit, i);
-            eq2edit = evalCubeRoot(eq2edit, i);
+            eq2edit = evalCubeRoot(eq2edit, i)
 
-            console.log()
-
+            // Solve equation 1 for its y value at the specified x value
             let eq1solution = nerdamer('solve(' + eq1edit + ', y)').toString();
             eq1solution = eq1solution.split(',')[0];
             eq1solution = edit(eq1solution).toString();
@@ -389,71 +379,88 @@
             eq2solution = eq2solution.split(',')[0];
             eq2solution = edit(eq2solution).toString();
             eq2solution = Number(eval(eq2solution.substring(1, eq2solution.length - 1)));
-          }
 
-          // Look back to test
-          if (i === points[0][0]) {
+            if (eq1solution == NaN || eq2solution == NaN) {
+              eq1edit = evalCubeRoot(eq1edit, i);
+              eq2edit = evalCubeRoot(eq2edit, i);
+
+              console.log()
+
+              let eq1solution = nerdamer('solve(' + eq1edit + ', y)').toString();
+              eq1solution = eq1solution.split(',')[0];
+              eq1solution = edit(eq1solution).toString();
+              eq1solution = Number(eval(eq1solution.substring(1, eq1solution.length - 1)));
+
+              // Solve equation 2 for its y value at the specified x value
+              let eq2solution = nerdamer('solve(' + eq2edit + ', y)').toString();
+              eq2solution = eq2solution.split(',')[0];
+              eq2solution = edit(eq2solution).toString();
+              eq2solution = Number(eval(eq2solution.substring(1, eq2solution.length - 1)));
+            }
+
+            // Look back to test
+            if (i === points[0][0]) {
+              if (eq1solution > eq2solution) {
+                yMax = eq1solution;
+                yMin = eq2solution;
+              } else {
+                yMax = eq2solution;
+                yMin = eq1solution;
+              }
+            }
+
+            // Reset minimum and maximum values
             if (eq1solution > eq2solution) {
-              yMax = eq1solution;
-              yMin = eq2solution;
-            } else {
-              yMax = eq2solution;
+              let temp = eq1solution;
+              eq1solution = eq2solution;
+              eq2solution = temp;
+            }
+
+            if (eq1solution < yMin) {
               yMin = eq1solution;
             }
+
+            if (eq1solution > yMax) {
+              yMax = eq1solution;
+            }
+
+            if (eq2solution < yMin) {
+              yMin = eq2solution;
+            }
+
+            if (eq2solution > yMax) {
+              yMax = eq2solution;
+            }
+
+            bottom.push(eq1solution);
+            top.push(eq2solution);
           }
 
-          // Reset minimum and maximum values
-          if (eq1solution > eq2solution) {
-            let temp = eq1solution;
-            eq1solution = eq2solution;
-            eq2solution = temp;
-          }
+          if ($("#slice-type option:selected").val() == "square") {
+            generateSquareMeshes(bottom, top, width);
+          } else if ($("#slice-type option:selected").val() == "rectangle") {
 
-          if (eq1solution < yMin) {
-            yMin = eq1solution;
-          }
 
-          if (eq1solution > yMax) {
-            yMax = eq1solution;
           }
+        });
 
-          if (eq2solution < yMin) {
-            yMin = eq2solution;
-          }
+        function copyScript() {
+          /* Get the text field */
+          var copyText = document.getElementById("code");
 
-          if (eq2solution > yMax) {
-            yMax = eq2solution;
-          }
+          /* Select the text field */
+          copyText.select();
 
-          bottom.push(eq1solution);
-          top.push(eq2solution);
+          /* Copy the text inside the text field */
+          document.execCommand("copy");
+
+          alert("Copied the text: " + copyText.value);
         }
 
-        if ($("#slice-type option:selected").val() == "square") {
-          generateSquareMeshes(bottom, top, width);
-        } else if ($("#slice-type option:selected").val() == "rectangle") {
-
-
-        }
-      });
-
-      function copyScript() {
-        /* Get the text field */
-        var copyText = document.getElementById("code");
-
-        /* Select the text field */
-        copyText.select();
-
-        /* Copy the text inside the text field */
-        document.execCommand("copy");
-
-        alert("Copied the text: " + copyText.value);
-      }
-
-      $("#example").click(function () {
-        window.location.href = "https://www.tinkercad.com/embed/ayvLigs6vC3?editbtn=1";
-      })
-    </script>
+        $("#example").click(function () {
+          window.location.href = "https://www.tinkercad.com/embed/ayvLigs6vC3?editbtn=1";
+        })
+      </script>
 </body>
 
 </html>
