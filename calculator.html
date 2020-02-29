@@ -163,10 +163,6 @@
               topY = top[i];
             }
 
-            //console.log(bottom[i]);
-
-            // 9.9498 works
-
             let verticeOne = [(10 * i * width), (10 * bottomY), 0];
             let verticeTwo = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), 0];
             let verticeThree = [(((10 * i * width) + (9.9498 * width))), (10 * topY), 0];
@@ -197,7 +193,6 @@
             rightMeshes.push(rightMesh);
             frontMeshes.push(frontMesh);
             backMeshes.push(backMesh);
-
           }
 
           let script =
@@ -218,8 +213,69 @@
           document.getElementById('code').innerHTML = script;
         }
 
-        function generateTriangleMeshes() {
+        function generateTriangleMeshes(bottom, top, width) {
+          let bottomMeshes = [];
+          let leftMeshes = [];
+          let rightMeshes = [];
+          let frontTopMeshes = [];
+          let backTopMeshes = [];
 
+          // Point format is (X, Y, Z)
+
+          for (let i = 0; i < bottom.length; i++) {
+            let bottomY = 0;
+            let topY = 0;
+
+            if (bottom[i] > top[i]) {
+              bottomY = top[i];
+              topY = bottom[i];
+            } else {
+              bottomY = bottom[i];
+              topY = top[i];
+            }
+
+            let verticeOne = [(10 * i * width), (10 * bottomY), 0];
+            let verticeTwo = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), 0];
+            let verticeThree = [(((10 * i * width) + (9.9498 * width))), (10 * topY), 0];
+            let verticeFour = [(10 * i * width), (10 * topY), 0];
+            let verticeFive = [(10 * i * width), (((10 * bottomY) + (10 * topY)) / 2), (10 * Math.abs(bottomY - topY))];
+            let verticeSix = [(((10 * i * width) + (9.9498 * width))), (((10 * bottomY) + (10 * topY)) / 2), (10 * Math.abs(bottomY -
+              topY))];
+
+            let bottomMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
+              "], [" + verticeFour + "]);";
+            let leftMesh = "mesh" + i + ".triangle([" + verticeOne + "], [" + verticeFour + "], [" + verticeFive +
+              "]);";
+            let rightMesh = "mesh" + i + ".triangle([" + verticeTwo + "], [" + verticeThree + "], [" + verticeSix +
+              "]);";
+            let frontTopMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeSix +
+              "], [" + verticeFive + "]);";
+            let backTopMesh = "mesh" + i + ".quad([" + verticeThree + "], [" + verticeFour + "], [" + verticeFive +
+              "], [" + verticeSix + "]);";
+
+            bottomMeshes.push(bottomMesh);
+            leftMeshes.push(leftMesh);
+            rightMeshes.push(rightMesh);
+            frontTopMeshes.push(frontTopMesh);
+            backTopMeshes.push(backTopMesh);
+          }
+
+          let script =
+            "var Conversions = Core.Conversions; <br>var Debug = Core.Debug; <br>var Path2D = Core.Path2D; <br>var Point2D = Core.Point2D; <br>var Point3D = Core.Point3D; <br>var Matrix2D = Core.Matrix2D; <br>var Matrix3D = Core.Matrix3D; <br>var Mesh3D = Core.Mesh3D; <br>var Plugin = Core.Plugin; <br>var Tess = Core.Tess; <br>var Sketch2D = Core.Sketch2D; <br>var Solid = Core.Solid; <br>var Vector2D = Core.Vector2D; <br>var Vector3D = Core.Vector3D; <br><br>function process(params) { <br>";
+
+          for (let i = 0; i < bottom.length; i++) {
+            script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + frontTopMeshes[i] + "<br>" +
+              leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + backTopMeshes[i] + "<br><br>";
+
+            if (i != 0) {
+              script += "mesh0.combine(mesh" + i + "); <br><br>";
+            }
+
+          }
+
+          script += "return Solid.make(mesh0); }";
+
+          document.getElementById('code').innerHTML = script;
         }
 
         function generateRightTriangleMeshes() {
@@ -438,9 +494,8 @@
 
           if ($("#slice-type option:selected").val() == "square") {
             generateSquareMeshes(bottom, top, width);
-          } else if ($("#slice-type option:selected").val() == "rectangle") {
-
-
+          } else if ($("#slice-type option:selected").val() == "equilateral-triangle") {
+            generateTriangleMeshes(bottom, top, width);
           }
         });
 
