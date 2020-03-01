@@ -104,6 +104,8 @@
       background-color: #4a47a3;
       color: #eab9c9;
     }
+
+    /* Maybe: https://colorhunt.co/palette/174290 */
   </style>
 </head>
 
@@ -232,6 +234,7 @@
           }
 
           script += "return Solid.make(mesh0); }";
+          document.getElementById("code").style.fontSize = "11px";
 
           document.getElementById('code').innerHTML = script;
         }
@@ -298,6 +301,7 @@
 
           script += "return Solid.make(mesh0); }";
 
+          document.getElementById("code").style.fontSize = "11px";
           document.getElementById('code').innerHTML = script;
         }
 
@@ -364,6 +368,7 @@
           script += "return Solid.make(mesh0); }";
 
           document.getElementById('code').innerHTML = script;
+          document.getElementById("code").style.fontSize = "11px";
         }
 
         function generateSemicircle() {
@@ -375,9 +380,8 @@
         }
 
         $("#help").click(function () {
-          alert(
-            "Please enter two functions that have exactly two points of intersection. Then select the width that you would like the slices to be. \n \nTo use the script, open a new TinkerCad project. The open the dropdown that says 'Basic Shapes' and scroll to 'Your Shape Generators'. Click 'Your Shape Generators' and select 'Create Shape Generator.' Click 'New Shape Generator.' Select 'Empty' from the dropdown menu. In the tab on the left side of the screen, paste the code that was generated."
-          )
+          document.getElementById("code").innerHTML = "Please enter two functions that you would like to create a solid between. Enter bounds (if the functions intersect more than once). Select the shape of the slices you would like (Square, Rectangle, Right Triangle, Equilateral Triangle). Press 'Calculate' to get the TinkerCad Script.<br><br>To use the script, open a new TinkerCad project. The open the dropdown that says 'Basic Shapes' and scroll to 'Your Shape Generators'. Click 'Your Shape Generators' and select 'Create Shape Generator.' Click 'New Shape Generator.' Select 'Empty' from the dropdown menu. In the tab on the left side of the screen, paste the code that was generated.";
+          document.getElementById("code").style.fontSize = "16px";
         })
 
         $("#calculate").click(function () {
@@ -584,13 +588,8 @@
         });
 
         function copyScript() {
-          /* Get the text field */
           const copyText = document.getElementById("code");
-
-          /* Select the text field */
           copyText.select();
-
-          /* Copy the text inside the text field */
           document.execCommand("copy");
 
           alert("Copied the text: " + copyText.value);
