@@ -101,9 +101,9 @@
     }
 
     button:hover {
-      border: 1px solid #0c7b93;
+      border: 1px solid #fff;
       background-color: #142850;
-      color: #0c7b93;
+      color: #fff;
     }
 
     #calculate {
@@ -139,7 +139,7 @@
         <input id="scale" placeholder="Scaling Factor"></input><br><br>
         <button id="calculate">Calculate</button><br>
         <button id="copy" onclick="copyScript()">Copy Script</button><br><br>
-        <button id="help">Help</button><br>
+        <button id="help" onclick="help()">Help</button><br>
         <button id="example">See an example</button>
       </td>
       <td id="main">
@@ -149,6 +149,11 @@
     <table>
 
       <script>
+
+        $(document).ready(function () {
+          help();
+        });
+
         // Set default equation values
         document.getElementById('eq1').value = "2*x^2 - 6*x + 4";
         document.getElementById('eq2').value = "4*cos(pi*x/4)";
@@ -471,11 +476,11 @@
           document.getElementById('code').innerHTML = script;
         }
 
-        $("#help").click(function () {
+        function help() {
           document.getElementById("code").innerHTML = "Please enter two functions that you would like to create a solid between. Enter bounds (if the functions intersect more than once). Select the shape of the slices you would like (Square, Rectangle, Right Triangle, Equilateral Triangle). If you select rectangle, add a scaling factor that is the ratio of the height to the width (0.5 is half height, 1 is square). Press 'Calculate' to get the TinkerCad Script.<br><br>To use the script, open a new TinkerCad project. The open the dropdown that says 'Basic Shapes' and scroll to 'Your Shape Generators'. Click 'Your Shape Generators' and select 'Create Shape Generator.' Click 'New Shape Generator.' Select 'Empty' from the dropdown menu. In the tab on the left side of the screen, paste the code that was generated.";
-          document.getElementById("code").innerHTML += "<br><br>Supported functions and constants: <ul><li><b>Pi:</b> pi</li><li><b>e:</b> euler</li><li><b>Sine:</b> sin(x)</li><li><b>Cosine:</b> cos(x)</li><li><b>Tangent:</b> tan(x)</li><li><b>Square root:</b> sqrt(x)</li><li><b>Cube root:</b> cbrt(x)</li><li><b>Absolute value:</b> abs(x)</li><li><b>Natural logarithm of x:</b> log(x)</li><li><b>E<sup>x</sup>:</b> exp(x)</li><li><b>Arcsine:</b> asin(x)</li><li><b>Arccosine:</b> acos(x)</li><li><b>Arctangent:</b> atan(x)</li></ul>";
+          document.getElementById("code").innerHTML += "<br><br>Supported functions and constants (type the text right of the colon to get the expected result): <ul><li><b>Pi:</b> pi</li><li><b>e:</b> euler</li><li><b>Sine:</b> sin(x)</li><li><b>Cosine:</b> cos(x)</li><li><b>Tangent:</b> tan(x)</li><li><b>Square root:</b> sqrt(x)</li><li><b>Cube root:</b> cbrt(x)</li><li><b>Absolute value:</b> abs(x)</li><li><b>Natural logarithm of x:</b> log(x)</li><li><b>E<sup>x</sup>:</b> exp(x)</li><li><b>Arcsine:</b> asin(x)</li><li><b>Arccosine:</b> acos(x)</li><li><b>Arctangent:</b> atan(x)</li></ul>";
           document.getElementById("code").style.fontSize = "18px";
-        });
+        }
 
         $("#calculate").click(function () {
           // Set variables for both equations
