@@ -246,7 +246,6 @@
             if (i != 0) {
               script += "mesh0.combine(mesh" + i + "); <br><br>";
             }
-
           }
 
           script += "return Solid.make(mesh0); }";
@@ -312,7 +311,6 @@
             if (i != 0) {
               script += "mesh0.combine(mesh" + i + "); <br><br>";
             }
-
           }
 
           script += "return Solid.make(mesh0); }";
@@ -378,7 +376,6 @@
             if (i != 0) {
               script += "mesh0.combine(mesh" + i + "); <br><br>";
             }
-
           }
 
           script += "return Solid.make(mesh0); }";
@@ -455,7 +452,6 @@
             if (i != 0) {
               script += "mesh0.combine(mesh" + i + "); <br><br>";
             }
-
           }
 
           script += "return Solid.make(mesh0); }";
@@ -465,9 +461,9 @@
         }
 
         $("#help").click(function () {
-          document.getElementById("code").innerHTML = "Please enter two functions that you would like to create a solid between. Enter bounds (if the functions intersect more than once). Select the shape of the slices you would like (Square, Rectangle, Right Triangle, Equilateral Triangle). Press 'Calculate' to get the TinkerCad Script.<br><br>To use the script, open a new TinkerCad project. The open the dropdown that says 'Basic Shapes' and scroll to 'Your Shape Generators'. Click 'Your Shape Generators' and select 'Create Shape Generator.' Click 'New Shape Generator.' Select 'Empty' from the dropdown menu. In the tab on the left side of the screen, paste the code that was generated.";
+          document.getElementById("code").innerHTML = "Please enter two functions that you would like to create a solid between. Enter bounds (if the functions intersect more than once). Select the shape of the slices you would like (Square, Rectangle, Right Triangle, Equilateral Triangle). If you select rectangle, add a scaling factor that is the ratio of the height to the width (0.5 is half height, 1 is square). Press 'Calculate' to get the TinkerCad Script.<br><br>To use the script, open a new TinkerCad project. The open the dropdown that says 'Basic Shapes' and scroll to 'Your Shape Generators'. Click 'Your Shape Generators' and select 'Create Shape Generator.' Click 'New Shape Generator.' Select 'Empty' from the dropdown menu. In the tab on the left side of the screen, paste the code that was generated.";
           document.getElementById("code").style.fontSize = "16px";
-        })
+        });
 
         $("#calculate").click(function () {
           // Set variables for both equations
