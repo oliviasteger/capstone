@@ -119,12 +119,13 @@
         <input id="eq2" placeholder="Equation Two"></input>
         <input id="bound1" placeholder="Lower Bound (Optional)"></input>
         <input id="bound2" placeholder="Upper Bound (Optional)"></input>
-        <select id="slice-type">
+        <select id="slice-type" onchange="report(this.value)">
           <option value="square">Square</option>
           <option value="rectangle">Rectangle</option>
           <option value="right-triangle">Right Triangle</option>
           <option value="equilateral-triangle">Equilateral Triangle</option>
-        </select><br><br>
+        </select>
+        <input id="scale" placeholder="Scaling Factor"></input><br><br>
         <button id="calculate">Calculate</button><br>
         <button id="copy" onclick="copyScript()">Copy Script</button><br><br>
         <button id="help">Help</button><br>
@@ -142,8 +143,23 @@
         document.getElementById('eq2').value = "4*cos(pi*x/4)";
         document.getElementById('bound1').value = "0";
         document.getElementById('bound2').value = "2";
+        document.getElementById("scale").style.display = "none";
 
         let update = false;
+
+        function report(value) {
+          var x = document.getElementById("scale");
+
+          x.style.display = "none";
+
+          if (value === "rectangle") {
+            if (x.style.display === "none") {
+              x.style.display = "inline-block";
+            } else {
+              x.style.display = "none";
+            }
+          }
+        }
 
         // Replaced trig functions and pi in equations
         function edit(string) {
@@ -375,8 +391,77 @@
 
         }
 
-        function generateRectangle(heightRatio) {
+        function generateRectangleMeshes(bottom, top, width, scalingFactor) {
+          let bottomMeshes = [];
+          let topMeshes = [];
+          let leftMeshes = [];
+          let rightMeshes = [];
+          let frontMeshes = [];
+          let backMeshes = [];
 
+          // Point format is (X, Y, Z)
+
+          for (let i = 0; i < bottom.length; i++) {
+            let bottomY = 0;
+            let topY = 0;
+
+            if (bottom[i] > top[i]) {
+              bottomY = top[i];
+              topY = bottom[i];
+            } else {
+              bottomY = bottom[i];
+              topY = top[i];
+            }
+
+            let verticeOne = [(10 * i * width), (10 * bottomY), 0];
+            let verticeTwo = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), 0];
+            let verticeThree = [(((10 * i * width) + (9.9498 * width))), (10 * topY), 0];
+            let verticeFour = [(10 * i * width), (10 * topY), 0];
+            let verticeFive = [(10 * i * width), (10 * bottomY), (10 * scalingFactor * Math.abs(bottomY - topY))];
+            let verticeSix = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), (10 * scalingFactor * Math.abs(bottomY -
+              topY))];
+            let verticeSeven = [(((10 * i * width) + (9.9498 * width))), (10 * topY), (10 * scalingFactor * Math.abs(bottomY -
+              topY))];
+            let verticeEight = [(10 * i * width), (10 * topY), (10 * scalingFactor * Math.abs(bottomY - topY))];
+
+            let bottomMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
+              "], [" + verticeFour + "]);";
+            let topMesh = "mesh" + i + ".quad([" + verticeFive + "], [" + verticeSix + "], [" + verticeSeven +
+              "], [" + verticeEight + "]);";
+            let leftMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeFive + "], [" + verticeEight +
+              "], [" + verticeFour + "]);";
+            let rightMesh = "mesh" + i + ".quad([" + verticeTwo + "], [" + verticeSix + "], [" + verticeSeven +
+              "], [" + verticeThree + "]);";
+            let frontMesh = "mesh" + i + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeSix +
+              "], [" + verticeFive + "]);";
+            let backMesh = "mesh" + i + ".quad([" + verticeThree + "], [" + verticeSeven + "], [" + verticeEight +
+              "], [" + verticeFour + "]);";
+
+            bottomMeshes.push(bottomMesh);
+            topMeshes.push(topMesh);
+            leftMeshes.push(leftMesh);
+            rightMeshes.push(rightMesh);
+            frontMeshes.push(frontMesh);
+            backMeshes.push(backMesh);
+          }
+
+          let script =
+            "var Conversions = Core.Conversions; <br>var Debug = Core.Debug; <br>var Path2D = Core.Path2D; <br>var Point2D = Core.Point2D; <br>var Point3D = Core.Point3D; <br>var Matrix2D = Core.Matrix2D; <br>var Matrix3D = Core.Matrix3D; <br>var Mesh3D = Core.Mesh3D; <br>var Plugin = Core.Plugin; <br>var Tess = Core.Tess; <br>var Sketch2D = Core.Sketch2D; <br>var Solid = Core.Solid; <br>var Vector2D = Core.Vector2D; <br>var Vector3D = Core.Vector3D; <br><br>function process(params) { <br>";
+
+          for (let i = 0; i < bottom.length; i++) {
+            script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + topMeshes[i] + "<br>" +
+              leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + frontMeshes[i] + "<br>" + backMeshes[i] + "<br><br>";
+
+            if (i != 0) {
+              script += "mesh0.combine(mesh" + i + "); <br><br>";
+            }
+
+          }
+
+          script += "return Solid.make(mesh0); }";
+          document.getElementById("code").style.fontSize = "11px";
+
+          document.getElementById('code').innerHTML = script;
         }
 
         $("#help").click(function () {
@@ -584,6 +669,8 @@
             generateTriangleMeshes(bottom, top, width);
           } else if ($("#slice-type option:selected").val() == "right-triangle") {
             generateRightTriangleMeshes(bottom, top, width);
+          } else if ($("#slice-type option:selected").val() == "rectangle") {
+            generateRectangleMeshes(bottom, top, width, document.getElementById('scale').value);
           }
         });
 
