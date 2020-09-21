@@ -135,6 +135,7 @@
           <option value="rectangle">Rectangle</option>
           <option value="right-triangle">Right Triangle</option>
           <option value="equilateral-triangle">Equilateral Triangle</option>
+          <option value="semicircle">Semicircle</option>
         </select>
         <input id="scale" placeholder="Scaling Factor"></input><br><br>
         <button id="calculate">Calculate</button><br>
@@ -401,8 +402,87 @@
           document.getElementById("code").style.fontSize = "11px";
         }
 
-        function generateSemicircle() {
+        function generateSemicircleMeshes(bottom, top, width) {
+          let script =
+            "var Conversions = Core.Conversions; <br>var Debug = Core.Debug; <br>var Path2D = Core.Path2D; <br>var Point2D = Core.Point2D; <br>var Point3D = Core.Point3D; <br>var Matrix2D = Core.Matrix2D; <br>var Matrix3D = Core.Matrix3D; <br>var Mesh3D = Core.Mesh3D; <br>var Plugin = Core.Plugin; <br>var Tess = Core.Tess; <br>var Sketch2D = Core.Sketch2D; <br>var Solid = Core.Solid; <br>var Vector2D = Core.Vector2D; <br>var Vector3D = Core.Vector3D; <br><br>function process(params) { <br>";
+          let bottomMeshes = [];
+          let topMeshes = [];
+          let leftMeshes = [];
+          let rightMeshes = [];
+          let frontMeshes = [];
+          let backMeshes = [];
 
+          let mesh = 0;
+
+          for (let i = 0; i < bottom.length; i++) {
+            let bottomY = 0;
+            let topY = 0;
+            let lastY = topY;
+            let lastZ = 0;
+
+            if (bottom[i] > top[i]) {
+              bottomY = top[i];
+              topY = bottom[i];
+            } else {
+              bottomY = bottom[i];
+              topY = top[i];
+            }
+
+            // chose a random number, change after testing
+            for (let j = 0.01; j < 1.01; j += 0.01) {
+              let currentY = topY - j * (topY - bottomY);
+              let currentZ = Math.sqrt(Math.abs(0.5 * (topY - bottomY) - (currentY) * (currentY))) + (0.5 * (topY - bottomY) + bottomY);
+              let lastZ = Math.sqrt(Math.abs(0.5 * (topY - bottomY) - (lastY) * (lastY))) + (0.5 * (topY - bottomY) + bottomY);
+
+              let verticeOne = [(10 * i * width), (10 * currentY), 0];
+              let verticeTwo = [(((10 * i * width) + (9.9498 * width))), (10 * currentY), 0];
+              let verticeThree = [(((10 * i * width) + (9.9498 * width))), (10 * lastY), 0];
+              let verticeFour = [(10 * i * width), (10 * lastY), 0];
+
+              let verticeFive = [(10 * i * width), (10 * bottomY), (10 * currentZ)];
+              let verticeSix = [(((10 * i * width) + (9.9498 * width))), (10 * bottomY), (10 * currentZ)];
+              let verticeSeven = [(((10 * i * width) + (9.9498 * width))), (10 * topY), (10 * lastZ)];
+              let verticeEight = [(10 * i * width), (10 * topY), (10 * lastZ)];
+
+              let bottomMesh = "mesh" + mesh + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeThree +
+                "], [" + verticeFour + "]);";
+              let topMesh = "mesh" + mesh + ".quad([" + verticeFive + "], [" + verticeSix + "], [" + verticeSeven +
+                "], [" + verticeEight + "]);";
+              let leftMesh = "mesh" + mesh + ".quad([" + verticeOne + "], [" + verticeFive + "], [" + verticeEight +
+                "], [" + verticeFour + "]);";
+              let rightMesh = "mesh" + mesh + ".quad([" + verticeTwo + "], [" + verticeSix + "], [" + verticeSeven +
+                "], [" + verticeThree + "]);";
+              let frontMesh = "mesh" + mesh + ".quad([" + verticeOne + "], [" + verticeTwo + "], [" + verticeSix +
+                "], [" + verticeFive + "]);";
+              let backMesh = "mesh" + mesh + ".quad([" + verticeThree + "], [" + verticeSeven + "], [" + verticeEight +
+                "], [" + verticeFour + "]);";
+
+              bottomMeshes.push(bottomMesh);
+              topMeshes.push(topMesh);
+              leftMeshes.push(leftMesh);
+              rightMeshes.push(rightMesh);
+              frontMeshes.push(frontMesh);
+              backMeshes.push(backMesh);
+
+              lastY = currentY;
+
+              mesh++;
+            }
+          }
+
+          for (let i = 0; i < bottom.length * 100; i++) {
+            script += "var mesh" + i + " = new Mesh3D(); <br>" + bottomMeshes[i] + "<br>" + topMeshes[i] + "<br>" +
+              leftMeshes[i] + "<br>" + rightMeshes[i] + "<br>" + frontMeshes[i] + "<br>" + backMeshes[i] + "<br><br>";
+
+            if (i != 0) {
+              script += "mesh0.combine(mesh" + i + "); <br><br>";
+            }
+          }
+
+          script += "return Solid.make(mesh0); }";
+          document.getElementById("code").style.fontSize = "11px";
+
+          document.getElementById('code').innerHTML = script;
         }
 
         function generateRectangleMeshes(bottom, top, width, scalingFactor) {
@@ -517,7 +597,6 @@
 
           for (let i = 0; i < xpoints.length; i++) {
             xpoints[i] = edit(xpoints[i]);
-            console.log(xpoints[i]);
             xpoints[i] = eval(xpoints[i]);
           }
 
@@ -624,8 +703,6 @@
               eq1edit = evalCubeRoot(eq1edit, i);
               eq2edit = evalCubeRoot(eq2edit, i);
 
-              console.log()
-
               let eq1solution = nerdamer('solve(' + eq1edit + ', y)').toString();
               eq1solution = eq1solution.split(',')[0];
               eq1solution = edit(eq1solution).toString();
@@ -684,6 +761,8 @@
             generateRightTriangleMeshes(bottom, top, width);
           } else if ($("#slice-type option:selected").val() == "rectangle") {
             generateRectangleMeshes(bottom, top, width, document.getElementById('scale').value);
+          } else if ($("#slice-type option:selected").val() == "semicircle") {
+            generateSemicircleMeshes(bottom, top, width);
           }
         });
 
